@@ -1,0 +1,110 @@
+<resources>
+    <string name="app_name">DRISHTI</string>
+
+    <!-- Ready screen -->
+    <string name="ready_prompt">Double tap anywhere to start walking.</string>
+    <string name="ready_hint">Volume up describes the scene. Volume down is emergency.</string>
+
+    <!-- Big on-screen state words -->
+    <string name="state_ready">READY</string>
+    <string name="state_walking">WALKING</string>
+    <string name="state_caution">CAUTION</string>
+    <string name="state_left">LEFT</string>
+    <string name="state_right">RIGHT</string>
+    <string name="state_stop">STOP</string>
+    <string name="state_paused">PAUSED</string>
+    <string name="state_sos">S O S</string>
+    <string name="state_reading">READING</string>
+    <string name="state_describing">SCENE</string>
+
+    <!-- Spoken guidance (English matches the backend guidance contract wording) -->
+    <string name="guide_caution">Obstacle nearby.</string>
+    <string name="guide_move_left">Path blocked. Move slightly left.</string>
+    <string name="guide_move_right">Path blocked. Move slightly right.</string>
+    <string name="guide_stop">Stop. Obstacle directly ahead.</string>
+    <string name="guide_pause_unclear">Path unclear. Please pause.</string>
+    <string name="guide_wall">Stop. Wall or dead end ahead.</string>
+    <string name="guide_vehicle">Stop. Vehicle approaching ahead.</string>
+    <string name="guide_all_blocked">Stop. Path blocked on all sides.</string>
+    <string name="guide_surface_uncertain">Path unclear. Walking surface uncertain.</string>
+
+    <!-- Connection + session -->
+    <string name="conn_lost">Connection lost.</string>
+    <string name="conn_restored">Connection restored.</string>
+    <string name="walk_started">Walking started.</string>
+    <string name="walk_stopped">Walking stopped.</string>
+    <string name="surface_degraded">Surface detection degraded.</string>
+    <string name="models_not_ready">The assistant is not ready. Retrying.</string>
+    <string name="backend_ready">Backend ready.</string>
+    <string name="backend_degraded">Backend degraded.</string>
+    <string name="backend_unreachable">Backend unreachable. Check the address in settings.</string>
+
+    <!-- Explore / OCR -->
+    <string name="explore_listening">Reading text. Hold still.</string>
+    <string name="explore_none">No text found.</string>
+    <string name="explore_possible">Possible text: %1$s</string>
+    <string name="explore_route">Route %1$s.</string>
+    <string name="explore_busy">Reader busy. Try again.</string>
+    <string name="explore_unavailable">Text reading is not available.</string>
+    <string name="explore_card_title">TEXT READ</string>
+    <string name="explore_quality_high">Clear reading</string>
+    <string name="explore_quality_low">Uncertain reading</string>
+    <string name="explore_quality_none">No readable text</string>
+    <string name="explore_routes_label">Route numbers</string>
+
+    <!-- VLM scene description / Q&A (on-demand, slow local model) -->
+    <string name="vlm_prompt_ask">What would you like to know about the scene?</string>
+    <string name="vlm_no_speech">I didn\'t catch that. Describing what is ahead.</string>
+    <string name="vlm_default_prompt">Describe what is directly in front of me, briefly.</string>
+    <string name="vlm_working">Working on it. Hold still.</string>
+    <string name="vlm_unavailable">Scene description is not available right now.</string>
+    <string name="vlm_busy">The scene assistant is busy. Try again.</string>
+    <string name="vlm_timeout">That took too long. Try again.</string>
+    <string name="vlm_mic_denied">Microphone access is needed to ask about the scene.</string>
+    <string name="vlm_card_title">SCENE</string>
+
+    <!-- Why the current guidance (shown under the banner) -->
+    <string name="reason_wall">Wall or dead end ahead</string>
+    <string name="reason_vehicle">Vehicle approaching in your path</string>
+    <string name="reason_all_blocked">Path blocked on every side</string>
+    <string name="reason_centre_blocked_side">Path ahead blocked, side is clearer</string>
+    <string name="reason_centre_blocked_unclear">Path ahead blocked, direction unclear</string>
+    <string name="reason_surface_uncertain">Walking surface is uncertain</string>
+    <string name="reason_obstacle_nearby">Obstacle nearby</string>
+    <string name="reason_obstacle_ahead">Obstacle directly ahead</string>
+    <string name="reason_low_risk">Minor obstacle being watched</string>
+
+    <!-- On-screen diagnostics line -->
+    <string name="diag_tts_ok">voice ready</string>
+    <string name="diag_tts_fail">voice: %1$s</string>
+    <string name="diag_preview_off">preview off</string>
+
+    <!-- Hazard reporting -->
+    <string name="hazard_prompt">Double tap to confirm a hazard here. Long press to add a photo.</string>
+    <string name="hazard_sent">Hazard reported. Thank you.</string>
+    <string name="hazard_failed">Hazard report failed.</string>
+    <string name="hazard_cancelled">Hazard report cancelled.</string>
+    <string name="nearby_hazard">Reported hazard nearby: %1$s.</string>
+
+    <!-- SOS -->
+    <string name="sos_active">Emergency. I need help.</string>
+    <string name="sos_cancelled">Emergency cancelled.</string>
+    <string name="sos_exit_hint">Triple tap then double tap to cancel emergency.</string>
+
+    <!-- Gestures / misc -->
+    <string name="screen_blanked">Screen off. Assistant still active.</string>
+    <string name="screen_unblanked">Screen on.</string>
+    <string name="repeat_hint">No new guidance.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_backend">Backend address</string>
+    <string name="settings_test">Test connection</string>
+    <string name="settings_language">Spoken language</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_spatial_audio">Spatial audio</string>
+    <string name="settings_visual_layer">Show camera and overlays</string>
+    <string name="settings_speech_rate">Speech rate</string>
+    <string name="settings_risk">Alert sensitivity</string>
+    <string name="settings_done">Done</string>
+</resources>

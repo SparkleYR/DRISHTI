@@ -1,0 +1,86 @@
+<resources>
+    <string name="ready_prompt">நடப்பதைத் தொடங்க எங்கும் இருமுறை தட்டவும்.</string>
+    <string name="ready_hint">வால்யூம் மேல் காட்சியை விவரிக்கும். வால்யூம் கீழ் அவசரம்.</string>
+
+    <string name="state_ready">தயார்</string>
+    <string name="state_walking">நடக்கிறது</string>
+    <string name="state_caution">எச்சரிக்கை</string>
+    <string name="state_left">இடது</string>
+    <string name="state_right">வலது</string>
+    <string name="state_stop">நில்</string>
+    <string name="state_paused">இடைநிறுத்தம்</string>
+    <string name="state_sos">அவசரம்</string>
+    <string name="state_reading">படிக்கிறது</string>
+    <string name="state_describing">காட்சி</string>
+
+    <string name="guide_caution">அருகில் தடை உள்ளது.</string>
+    <string name="guide_move_left">பாதை அடைபட்டுள்ளது. சிறிது இடதுபுறம் நகருங்கள்.</string>
+    <string name="guide_move_right">பாதை அடைபட்டுள்ளது. சிறிது வலதுபுறம் நகருங்கள்.</string>
+    <string name="guide_stop">நில்லுங்கள். நேராக முன்னால் தடை உள்ளது.</string>
+    <string name="guide_pause_unclear">பாதை தெளிவாக இல்லை. தயவுசெய்து நிறுத்துங்கள்.</string>
+    <string name="guide_wall">நில்லுங்கள். முன்னால் சுவர் அல்லது முட்டுச்சந்து.</string>
+    <string name="guide_vehicle">நில்லுங்கள். முன்னால் வாகனம் வருகிறது.</string>
+    <string name="guide_all_blocked">நில்லுங்கள். எல்லா பக்கமும் பாதை அடைபட்டுள்ளது.</string>
+    <string name="guide_surface_uncertain">பாதை தெளிவில்லை. தரை உறுதியில்லை.</string>
+
+    <string name="conn_lost">இணைப்பு துண்டிக்கப்பட்டது.</string>
+    <string name="conn_restored">இணைப்பு மீண்டும் வந்தது.</string>
+    <string name="walk_started">நடப்பது தொடங்கியது.</string>
+    <string name="walk_stopped">நடப்பது நிறுத்தப்பட்டது.</string>
+    <string name="surface_degraded">தரை கண்டறிதல் குறைவாக உள்ளது.</string>
+    <string name="models_not_ready">உதவியாளர் தயாராக இல்லை. மீண்டும் முயற்சிக்கிறது.</string>
+    <string name="backend_ready">சேவையகம் தயார்.</string>
+    <string name="backend_degraded">சேவையகம் குறைந்த நிலையில்.</string>
+    <string name="backend_unreachable">சேவையகத்தை அடைய முடியவில்லை. அமைப்பில் முகவரியைச் சரிபார்க்கவும்.</string>
+
+    <string name="explore_listening">உரையைப் படிக்கிறது. அசையாமல் இருங்கள்.</string>
+    <string name="explore_none">உரை எதுவும் கிடைக்கவில்லை.</string>
+    <string name="explore_possible">சாத்தியமான உரை: %1$s</string>
+    <string name="explore_route">வழி %1$s.</string>
+    <string name="explore_busy">படிப்பான் பணியில். மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="explore_unavailable">உரை படித்தல் கிடைக்கவில்லை.</string>
+    <string name="explore_card_title">படித்த உரை</string>
+    <string name="explore_quality_high">தெளிவான வாசிப்பு</string>
+    <string name="explore_quality_low">உறுதியற்ற வாசிப்பு</string>
+    <string name="explore_quality_none">படிக்கத்தக்க உரை இல்லை</string>
+    <string name="explore_routes_label">வழி எண்கள்</string>
+
+    <!-- VLM காட்சி விவரிப்பு / கேள்வி-பதில் (தேவைக்கேற்ப, மெதுவான உள்ளூர் மாதிரி) -->
+    <string name="vlm_prompt_ask">காட்சியைப் பற்றி நீங்கள் என்ன தெரிந்துகொள்ள விரும்புகிறீர்கள்?</string>
+    <string name="vlm_no_speech">புரியவில்லை. முன்னால் உள்ளதை விவரிக்கிறேன்.</string>
+    <string name="vlm_default_prompt">எனக்கு நேராக முன்னால் உள்ளதைச் சுருக்கமாக விவரிக்கவும்.</string>
+    <string name="vlm_working">வேலை நடக்கிறது. அசையாமல் இருங்கள்.</string>
+    <string name="vlm_unavailable">காட்சி விவரிப்பு இப்போது கிடைக்கவில்லை.</string>
+    <string name="vlm_busy">காட்சி உதவியாளர் பணிமிகுதியில். மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="vlm_timeout">அதிக நேரம் ஆனது. மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="vlm_mic_denied">காட்சியைப் பற்றிக் கேட்க மைக்ரோஃபோன் அனுமதி தேவை.</string>
+    <string name="vlm_card_title">காட்சி</string>
+
+    <string name="reason_wall">முன்னால் சுவர் அல்லது முட்டுச்சந்து</string>
+    <string name="reason_vehicle">உங்கள் பாதையில் வாகனம் வருகிறது</string>
+    <string name="reason_all_blocked">எல்லா பக்கமும் பாதை அடைபட்டுள்ளது</string>
+    <string name="reason_centre_blocked_side">முன் பாதை அடைபட்டது, ஓரம் தெளிவாக உள்ளது</string>
+    <string name="reason_centre_blocked_unclear">முன் பாதை அடைபட்டது, திசை தெளிவில்லை</string>
+    <string name="reason_surface_uncertain">நடக்கும் தரை உறுதியில்லை</string>
+    <string name="reason_obstacle_nearby">அருகில் தடை</string>
+    <string name="reason_obstacle_ahead">நேராக முன்னால் தடை</string>
+    <string name="reason_low_risk">சிறிய தடை கவனிக்கப்படுகிறது</string>
+
+    <string name="diag_tts_ok">குரல் தயார்</string>
+    <string name="diag_tts_fail">குரல்: %1$s</string>
+    <string name="diag_preview_off">முன்னோட்டம் அணைப்பு</string>
+
+    <string name="hazard_prompt">இங்கே தடையைப் பதிவு செய்ய இருமுறை தட்டவும். புகைப்படம் சேர்க்க நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="hazard_sent">தடை பதிவு செய்யப்பட்டது. நன்றி.</string>
+    <string name="hazard_failed">தடை பதிவு தோல்வியடைந்தது.</string>
+    <string name="hazard_cancelled">தடை அறிக்கை ரத்து.</string>
+    <string name="nearby_hazard">அருகில் பதிவான தடை: %1$s.</string>
+
+    <string name="sos_active">அவசரம். எனக்கு உதவி தேவை.</string>
+    <string name="sos_cancelled">அவசரம் ரத்து.</string>
+    <string name="sos_exit_hint">அவசரத்தை ரத்து செய்ய மூன்று முறை பின்பு இரு முறை தட்டவும்.</string>
+
+    <string name="screen_blanked">திரை அணைந்தது. உதவியாளர் இயங்குகிறது.</string>
+    <string name="screen_unblanked">திரை ஆன்.</string>
+    <string name="repeat_hint">புதிய வழிகாட்டல் இல்லை.</string>
+</resources>
