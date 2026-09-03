@@ -1,23 +1,39 @@
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
 @import "tailwindcss";
 
 @source "./**/*.{ts,tsx}";
 @source "../../../packages/contracts/src/**/*.ts";
 
 :root {
-  font-family: Inter, "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: Inter, "Open Sans", Arial, sans-serif;
   color: #0f172a;
-  background: #f8fafc;
+  background: #faf8f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
 * { box-sizing: border-box; }
 html { color-scheme: light; scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: #f8fafc; }
-button, input { font: inherit; }
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #faf8f5;
+  background-image:
+    linear-gradient(rgba(180, 83, 9, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 83, 9, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+
+.utility-link { color: #475569; text-decoration: none; }
+.utility-link:hover { color: #92400e; text-decoration: underline; text-underline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

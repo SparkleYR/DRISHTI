@@ -12,6 +12,7 @@ def test_defaults_are_local() -> None:
     assert settings.database_path == PROJECT_ROOT / "data" / "drishti.db"
     assert settings.host == "0.0.0.0"
     assert all(origin.startswith("http://localhost") or origin.startswith("http://127.0.0.1") for origin in settings.allowed_origins)
+    assert "http://127.0.0.1:5173" in settings.allowed_origins
 
 
 def test_model_paths_are_local_paths() -> None:

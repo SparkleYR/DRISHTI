@@ -26,7 +26,7 @@ In a second terminal:
 npm run dev --workspace apps/dashboard
 ```
 
-Open `http://127.0.0.1:3000`.
+Open `http://127.0.0.1:5173`.
 
 ## Judge walkthrough
 

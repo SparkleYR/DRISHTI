@@ -92,20 +92,20 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <a href="#dashboard-content" className="sr-only z-50 rounded bg-white px-4 py-2 font-bold text-blue-800 focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to dashboard content</a>
+    <div className="min-h-screen text-slate-900">
+      <a href="#dashboard-content" className="sr-only z-50 rounded-sm border border-amber-600 bg-white px-4 py-2 font-semibold text-amber-800 focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to dashboard content</a>
       <HeaderStatusBar edge={edge} health={state?.health ?? null} isRefreshing={isRefreshing} onRefresh={() => void refresh()} />
       <main id="dashboard-content" className="mx-auto max-w-[1480px] space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         {error ? (
-          <div className="flex gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-950" role="alert">
+          <div className="flex gap-3 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-red-950" role="alert">
             <AlertTriangle className="mt-0.5 shrink-0" size={19} aria-hidden="true" />
             <div><p className="text-sm font-bold">Local synchronization issue</p><p className="mt-0.5 text-sm">{error}</p></div>
           </div>
         ) : null}
 
         {state ? <OperationalSummary state={state} /> : (
-          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm" role="status">
-            <span className="mx-auto block size-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-700" aria-hidden="true" />
+          <div className="rounded-sm border border-slate-300 bg-white p-8 text-center" role="status">
+            <span className="mx-auto block size-8 animate-spin rounded-full border-4 border-slate-200 border-t-amber-700" aria-hidden="true" />
             <p className="mt-3 text-sm font-bold text-slate-800">Loading local operations…</p>
           </div>
         )}
@@ -134,7 +134,7 @@ export function App() {
           </>
         ) : null}
       </main>
-      <footer className="border-t border-slate-200 bg-white">
+      <footer id="accessibility-statement" className="border-t border-slate-300 bg-white">
         <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>DRISHTI local-only accessibility prototype</span>
           <span>Advisory monitoring · not a replacement for mobility aids or human judgment</span>
@@ -152,10 +152,10 @@ function OperationalSummary({ state }: { state: DashboardState }) {
     { icon: Clock3, label: "Last local sync", value: new Date(state.summary.server_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) },
   ];
   return (
-    <section className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:grid-cols-2 lg:grid-cols-4" aria-label="Operations summary">
+    <section className="grid overflow-hidden rounded-sm border border-slate-300 bg-white sm:grid-cols-2 lg:grid-cols-4" aria-label="Operations summary">
       {items.map((item, index) => {
         const Icon = item.icon;
-        return <div className={`flex items-center gap-3 px-5 py-4 ${index ? "border-t border-slate-200 sm:border-l sm:border-t-0" : ""}`} key={item.label}><span className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-600"><Icon size={18} aria-hidden="true" /></span><div><p className="text-xs font-semibold text-slate-500">{item.label}</p><p className="mt-0.5 text-lg font-extrabold tabular-nums text-slate-950">{item.value}</p></div></div>;
+        return <div className={`flex items-center gap-3 px-5 py-4 ${index ? "border-t border-slate-300 sm:border-l sm:border-t-0" : ""}`} key={item.label}><span className="grid size-9 place-items-center rounded-sm border border-slate-200 bg-[#fcfbf9] text-slate-700"><Icon size={18} aria-hidden="true" /></span><div><p className="text-xs font-medium text-slate-600">{item.label}</p><p className="mt-0.5 text-lg font-bold tabular-nums text-slate-950">{item.value}</p></div></div>;
       })}
     </section>
   );

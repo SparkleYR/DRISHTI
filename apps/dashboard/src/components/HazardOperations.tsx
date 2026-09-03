@@ -20,10 +20,11 @@ export function HazardOperations(props: {
       description="Review, assign, resolve, and consolidate anonymous local reports with optimistic version checks."
       eyebrow="Operations"
       icon={ClipboardCheck}
+      id="settings"
       title="Hazard Verification Queue"
       trailing={<StatusBadge tone={props.hazards.length ? "yellow" : "green"}>{props.hazards.length} active</StatusBadge>}
     >
-      <div className="border-b border-slate-200 bg-slate-50 p-5 sm:p-6">
+      <div className="border-b border-slate-300 bg-[#fcfbf9] p-5 sm:p-6">
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Operator alias" value={props.operatorAlias} onChange={props.setOperatorAlias} />
           <Field label="Assign to" value={props.assignedTo} onChange={props.setAssignedTo} />
@@ -32,12 +33,12 @@ export function HazardOperations(props: {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-white text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-slate-300 bg-white text-xs text-slate-600">
             <tr><th className="px-6 py-3 font-semibold">Hazard</th><th className="px-4 py-3 font-semibold">Severity</th><th className="px-4 py-3 font-semibold">Status</th><th className="px-4 py-3 font-semibold">Confidence</th><th className="px-4 py-3 font-semibold">Observations</th><th className="px-6 py-3 text-right font-semibold">Actions</th></tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
             {props.hazards.map((hazard) => (
-              <tr className="hover:bg-slate-50" key={hazard.id}>
+              <tr className="hover:bg-amber-50/40" key={hazard.id}>
                 <th className="px-6 py-4"><p className="font-bold text-slate-950">{hazard.category}</p><p className="mt-1 max-w-[260px] truncate font-mono text-[11px] font-normal text-slate-500">{hazard.id}</p></th>
                 <td className="px-4 py-4"><StatusBadge tone={severityTone(hazard.severity)}>{hazard.severity}</StatusBadge></td>
                 <td className="px-4 py-4 font-semibold text-slate-700">{hazard.status.replace("_", " ")}</td>
@@ -55,12 +56,12 @@ export function HazardOperations(props: {
 }
 
 function Field(props: { label: string; onChange: (value: string) => void; value: string }) {
-  return <label className="grid gap-1.5 text-xs font-bold text-slate-700">{props.label}<span className="relative"><UserRoundCog className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} aria-hidden="true" /><input className="min-h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm font-medium text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100" value={props.value} onChange={(event) => props.onChange(event.target.value)} /></span></label>;
+  return <label className="grid gap-1.5 text-xs font-semibold text-slate-700">{props.label}<span className="relative"><UserRoundCog className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} aria-hidden="true" /><input className="min-h-10 w-full rounded-sm border border-slate-300 bg-white pl-9 pr-3 text-sm font-medium text-slate-950 outline-none placeholder:text-slate-400 focus:border-amber-600 focus:ring-2 focus:ring-amber-100" value={props.value} onChange={(event) => props.onChange(event.target.value)} /></span></label>;
 }
 
 function ActionButton(props: { disabled: boolean; icon?: typeof Merge; label: string; onClick: () => void }) {
   const Icon = props.icon;
-  return <button disabled={props.disabled} onClick={props.onClick} type="button" className="inline-flex min-h-8 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-800 hover:border-blue-300 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">{Icon ? <Icon size={13} aria-hidden="true" /> : null}{props.label}</button>;
+  return <button disabled={props.disabled} onClick={props.onClick} type="button" className="inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 hover:border-amber-400 hover:bg-amber-50 disabled:cursor-wait disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700">{Icon ? <Icon size={13} aria-hidden="true" /> : null}{props.label}</button>;
 }
 
 function nextActions(status: HazardStatus): Array<[string, HazardStatus]> {

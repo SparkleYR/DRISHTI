@@ -16,16 +16,17 @@ export function LiveWalkMonitor({ edge }: { edge: EdgeStreamSnapshot }) {
       description="Latest edge frame and deterministic mobility-risk output. Frames are displayed only when an approved stream supplies them."
       eyebrow="Module A"
       icon={Video}
+      id="live-walk"
       title="Live Walk Loop & Stream Monitor"
       trailing={<RiskBadge state={risk} />}
     >
       <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(250px,.75fr)]">
         <div>
-          <div className="relative aspect-video overflow-hidden rounded-lg border border-slate-300 bg-slate-100" aria-label="Live walking frame monitor">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:10%_10%] opacity-45" aria-hidden="true" />
+          <div className="relative aspect-video overflow-hidden rounded-sm border border-slate-300 bg-[#f8f4ea]" aria-label="Live walking frame monitor">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ded7ca_1px,transparent_1px),linear-gradient(to_bottom,#ded7ca_1px,transparent_1px)] bg-[size:10%_10%] opacity-55" aria-hidden="true" />
             {edge.frameUrl ? <img className="absolute inset-0 size-full object-contain" src={edge.frameUrl} alt="Latest live walking frame" /> : (
               <div className="absolute inset-0 grid place-items-center p-6 text-center">
-                <div className="max-w-sm rounded-lg border border-slate-200 bg-white/95 px-5 py-4 shadow-sm">
+                <div className="max-w-sm rounded-sm border border-slate-300 bg-white px-5 py-4">
                   <EyeOff className="mx-auto text-slate-500" size={28} aria-hidden="true" />
                   <p className="mt-2 text-sm font-bold text-slate-800">Live frame unavailable</p>
                   <p className="mt-1 text-xs leading-5 text-slate-600">The approved backend does not currently expose a global video stream. No placeholder image or stored walking frame is shown.</p>
@@ -45,12 +46,12 @@ export function LiveWalkMonitor({ edge }: { edge: EdgeStreamSnapshot }) {
           <Metric label="Inference time" value={formatMs(inferenceMs)} suffix="ms" hint="Detector + segmenter" />
           <Metric label="Risk engine time" value={formatMs(frame?.timings.risk_ms)} suffix="ms" hint="Scoring and decision" />
           <Metric label="Total frame time" value={formatMs(frame?.timings.total_ms)} suffix="ms" hint={frame ? `Frame ${frame.frame_id}` : "No live frame"} />
-          <div className={`rounded-lg border px-4 py-4 sm:col-span-3 xl:col-span-1 ${riskPanelClass(risk)}`}>
+          <div className={`rounded-sm border px-4 py-4 sm:col-span-3 xl:col-span-1 ${riskPanelClass(risk)}`}>
             <div className="flex items-center gap-2">
               {risk === "CLEAR" ? <ShieldCheck size={20} aria-hidden="true" /> : <ShieldAlert size={20} aria-hidden="true" />}
-              <p className="text-xs font-bold uppercase tracking-[0.13em]">Risk engine state</p>
+              <p className="text-xs font-semibold">Risk engine state</p>
             </div>
-            <p className="mt-2 text-xl font-extrabold tracking-tight">{risk}</p>
+            <p className="mt-2 text-xl font-bold">{risk}</p>
             <p className="mt-1 text-xs leading-5">{frame?.guidance.speech || "No current risk decision is being streamed."}</p>
           </div>
         </div>

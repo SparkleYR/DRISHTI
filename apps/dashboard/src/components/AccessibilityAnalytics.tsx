@@ -15,6 +15,7 @@ export function AccessibilityAnalytics(props: {
       description="Versioned local-coordinate hazard intelligence. Scores are advisory facilities data, never live navigation instructions."
       eyebrow="Module C"
       icon={MapPinned}
+      id="hazard-map"
       title="Accessibility Analytics & Digital Twin"
       trailing={
         <div className="flex flex-wrap gap-2">
@@ -37,28 +38,28 @@ export function AccessibilityAnalytics(props: {
             <Legend color="bg-red-600" label="Critical / high" />
             <Legend color="bg-amber-500" label="Medium" />
             <Legend color="bg-emerald-600" label="Low" />
-            <Legend color="bg-blue-700" label="Route segment" />
+            <Legend color="bg-amber-700" label="Route segment" />
           </div>
         </div>
         <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-600">Overall route accessibility</p>
+          <div className="rounded-sm border border-slate-300 bg-[#fcfbf9] p-5">
+            <p className="text-xs font-semibold text-slate-600">Overall route accessibility</p>
             <div className="mt-2 flex items-end justify-between gap-4">
-              <div><span className="text-4xl font-extrabold tabular-nums tracking-tight text-slate-950">{route ? route.score.toFixed(1) : "—"}</span><span className="ml-1 text-sm font-bold text-slate-500">/ 100</span></div>
+              <div><span className="text-4xl font-bold tabular-nums text-slate-950">{route ? route.score.toFixed(1) : "—"}</span><span className="ml-1 text-sm font-bold text-slate-500">/ 100</span></div>
               <StatusBadge tone={scoreTone(route?.score)}>{route ? formatBand(route.band) : "No route"}</StatusBadge>
             </div>
-            <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Overall route accessibility score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={route?.score}>
-              <div className="h-full rounded-full bg-blue-700" style={{ width: `${route?.score ?? 0}%` }} />
+            <div className="mt-4 h-2.5 overflow-hidden rounded-sm bg-slate-200" role="progressbar" aria-label="Overall route accessibility score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={route?.score}>
+              <div className="h-full bg-amber-600" style={{ width: `${route?.score ?? 0}%` }} />
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-600">{route?.route_name ?? "No versioned route configured"} · {route?.active_hazard_count ?? 0} active · {route?.recurring_hazard_count ?? 0} recurring</p>
           </div>
-          <div className="overflow-hidden rounded-lg border border-slate-200">
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="overflow-hidden rounded-sm border border-slate-300">
+            <div className="border-b border-slate-300 bg-[#fcfbf9] px-4 py-3">
               <h3 className="text-sm font-bold text-slate-950">Hazard frequency</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-white text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-2 font-semibold">Category</th><th className="px-4 py-2 text-right font-semibold">Reports</th><th className="px-4 py-2 text-right font-semibold">Observations</th></tr></thead>
+                <thead className="bg-white text-xs text-slate-600"><tr><th className="px-4 py-2 font-semibold">Category</th><th className="px-4 py-2 text-right font-semibold">Reports</th><th className="px-4 py-2 text-right font-semibold">Observations</th></tr></thead>
                 <tbody className="divide-y divide-slate-200">
                   {frequency.map((item) => <tr key={item.category}><th className="px-4 py-2.5 font-semibold text-slate-800">{item.category}</th><td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{item.reports}</td><td className="px-4 py-2.5 text-right tabular-nums font-bold text-slate-950">{item.observations}</td></tr>)}
                   {frequency.length === 0 ? <tr><td className="px-4 py-5 text-center text-slate-500" colSpan={3}>No active hazard records</td></tr> : null}
@@ -66,7 +67,7 @@ export function AccessibilityAnalytics(props: {
               </table>
             </div>
           </div>
-          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-950" role="note">{props.accessibility.disclaimer}</p>
+          <p className="rounded-sm border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-950" role="note">{props.accessibility.disclaimer}</p>
         </div>
       </div>
     </SectionCard>
@@ -84,9 +85,9 @@ function HazardCanvas(props: { accessibility: DashboardAccessibilityResponse; ha
     const width = canvas.width;
     const height = canvas.height;
     context.clearRect(0, 0, width, height);
-    context.fillStyle = "#f8fafc";
+    context.fillStyle = "#fdf9ed";
     context.fillRect(0, 0, width, height);
-    context.strokeStyle = "#e2e8f0";
+    context.strokeStyle = "#e7dfcf";
     context.lineWidth = 1;
     for (let index = 0; index <= 10; index += 1) {
       const x = (width / 10) * index;
@@ -94,7 +95,7 @@ function HazardCanvas(props: { accessibility: DashboardAccessibilityResponse; ha
       context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke();
       context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke();
     }
-    context.strokeStyle = "#1d4ed8";
+    context.strokeStyle = "#b45309";
     context.lineWidth = 5;
     context.lineCap = "round";
     for (const route of props.accessibility.routes) {
@@ -123,7 +124,7 @@ function HazardCanvas(props: { accessibility: DashboardAccessibilityResponse; ha
       ref={canvasRef}
       width={760}
       height={380}
-      className="mt-3 aspect-[2/1] w-full rounded-lg border border-slate-300 bg-slate-50"
+      className="mt-3 aspect-[2/1] w-full rounded-sm border border-slate-300 bg-[#fdf9ed]"
       role="img"
       aria-label={`Digital twin coordinate plot with ${props.hazards.filter((hazard) => hazard.map_coordinate).length} mapped active hazards`}
     />
@@ -132,7 +133,7 @@ function HazardCanvas(props: { accessibility: DashboardAccessibilityResponse; ha
 
 function ExportButton(props: { icon: typeof Download; label: string; onClick: () => void }) {
   const Icon = props.icon;
-  return <button type="button" onClick={props.onClick} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"><Icon size={14} aria-hidden="true" />{props.label}</button>;
+  return <button type="button" onClick={props.onClick} className="inline-flex min-h-9 items-center gap-2 rounded-sm border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:border-amber-400 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"><Icon size={14} aria-hidden="true" />{props.label}</button>;
 }
 
 function Legend({ color, label }: { color: string; label: string }) {

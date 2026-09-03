@@ -152,9 +152,26 @@ test("renders local overview, map marker, and verification queue", async () => {
   expect(screen.getByRole("button", { name: "Verify" })).toBeTruthy();
   expect(screen.getByText("Accessibility Analytics & Digital Twin")).toBeTruthy();
   expect(screen.getByText("Live Walk Loop & Stream Monitor")).toBeTruthy();
-  expect(screen.getByText("Ask → Lock → Guide")).toBeTruthy();
+  expect(screen.getAllByText("Ask → Lock → Guide")).toHaveLength(2);
   expect(screen.getByText("Edge Hardware & Model VRAM Manager")).toBeTruthy();
   expect(screen.getByText("72.5")).toBeTruthy();
+  expect(screen.getByText("Official DRISHTI Local Accessibility Portal")).toBeTruthy();
+  expect(screen.getByRole("navigation", { name: "Accessibility utilities" })).toBeTruthy();
+  expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Skip to Main Content" }).getAttribute("href")).toBe("#dashboard-content");
+});
+
+test("provides functional text size accessibility controls", async () => {
+  installFetch();
+  render(<App />);
+
+  const largerText = screen.getByRole("button", { name: "Set text size A+" });
+  fireEvent.click(largerText);
+  expect(document.documentElement.style.fontSize).toBe("112%");
+  expect(largerText.getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.click(screen.getByRole("button", { name: "Set text size A" }));
+  expect(document.documentElement.style.fontSize).toBe("100%");
 });
 
 test("renders an understandable local synchronization failure", async () => {

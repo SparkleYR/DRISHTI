@@ -127,7 +127,7 @@ For Expo Go, enter `http://<laptop-private-ip>:8000` in the mobile settings scre
 npm run dev --workspace apps/dashboard
 ```
 
-The dashboard runs at `http://127.0.0.1:3000` and polls the approved local REST
+The dashboard runs at `http://127.0.0.1:5173` and polls the approved local REST
 health, hazard, summary, and accessibility endpoints. Copy
 `apps/dashboard/.env.example` to `apps/dashboard/.env` to override the API or
 stream URL. The current backend does not expose a global video/VRAM/FPS stream;
@@ -136,7 +136,7 @@ For live Ask -> Lock -> Guide state, configure `VITE_STREAM_WS_URL` with an
 active session's documented `/api/v1/walk/sessions/{session_id}/telemetry`
 WebSocket.
 
-Open `http://localhost:3000`.
+Open `http://localhost:5173`.
 
 ## Run the Expo test harness
 
