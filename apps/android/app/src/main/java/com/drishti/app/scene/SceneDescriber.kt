@@ -42,6 +42,22 @@ class SceneDescriber(
     }
 
     /**
+     * Speak the prompt, open the mic once, and return the raw transcript (or
+     * null on denial / silence / error). The caller decides whether that text
+     * is a scene question or an "Ask -> Lock" target.
+     */
+    suspend fun listenForRequest(languageTag: String): String? {
+        speech.speakBlocking(strings.string(R.string.vlm_prompt_ask), maxWaitMs = 8_000L)
+        delay(250)
+        if (voice.blocked()) {
+            speech.speakBlocking(strings.string(R.string.vlm_mic_denied), maxWaitMs = 8_000L)
+            return null
+        }
+        return withTimeoutOrNull(14_000) { voice.listen(languageTag) }
+    }
+
+    /**
+     * @param heard raw transcript from [listenForRequest], or null.
      * @return the answer on success (for on-screen display), else null.
      *
      * Every spoken line here is [SpeechEngine.speakBlocking]: the caller flips
@@ -49,18 +65,7 @@ class SceneDescriber(
      * next guidance line does a `QUEUE_FLUSH`. If we only queued speech, the
      * answer would be cut off mid-sentence and replaced by "STOP, path blocked".
      */
-    suspend fun describeOnce(languageTag: String): Result? {
-        // 1. Ask the user what they want to know, then open the mic. Wait for
-        //    the prompt to finish speaking so the recognizer does not hear it.
-        speech.speakBlocking(strings.string(R.string.vlm_prompt_ask), maxWaitMs = 8_000L)
-        delay(250)
-        val heard =
-            if (voice.blocked()) {
-                speech.speakBlocking(strings.string(R.string.vlm_mic_denied), maxWaitMs = 8_000L)
-                null
-            } else {
-                withTimeoutOrNull(14_000) { voice.listen(languageTag) }
-            }
+    suspend fun describeOnce(heard: String?): Result? {
         val question = heard ?: strings.string(R.string.vlm_default_prompt)
         if (heard == null && !voice.blocked()) {
             speech.speakBlocking(strings.string(R.string.vlm_no_speech), maxWaitMs = 8_000L)

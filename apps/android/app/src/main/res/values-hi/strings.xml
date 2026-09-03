@@ -47,7 +47,7 @@
     <string name="explore_routes_label">रूट नंबर</string>
 
     <!-- VLM दृश्य वर्णन / प्रश्न-उत्तर (माँग पर, धीमा स्थानीय मॉडल) -->
-    <string name="vlm_prompt_ask">आप दृश्य के बारे में क्या जानना चाहेंगे?</string>
+    <string name="vlm_prompt_ask">दृश्य के बारे में पूछें, या ढूंढो और कोई जगह बोलें।</string>
     <string name="vlm_no_speech">मैं समझ नहीं पाया। सामने क्या है, बता रहा हूँ।</string>
     <string name="vlm_default_prompt">मेरे ठीक सामने जो है उसका संक्षेप में वर्णन करें।</string>
     <string name="vlm_working">काम हो रहा है। स्थिर रहें।</string>
@@ -85,4 +85,16 @@
     <string name="screen_blanked">स्क्रीन बंद। सहायक चालू है।</string>
     <string name="screen_unblanked">स्क्रीन चालू।</string>
     <string name="repeat_hint">कोई नई जानकारी नहीं।</string>
+
+    <!-- Ask -> Lock -> Guide (target locate) -->
+    <string name="locate_working">%1$s ढूंढ रहा हूँ।</string>
+    <string name="locate_not_found">%1$s नहीं मिला। रुकें और फिर से देखें।</string>
+    <string name="locate_unavailable">लक्ष्य मार्गदर्शन अभी उपलब्ध नहीं है।</string>
+    <string-array name="locate_prefixes">
+        <item>"ढूंढो "</item>
+        <item>"ढूंढें "</item>
+        <item>"खोजो "</item>
+        <item>"खोजें "</item>
+        <item>"ले चलो "</item>
+    </string-array>
 </resources>

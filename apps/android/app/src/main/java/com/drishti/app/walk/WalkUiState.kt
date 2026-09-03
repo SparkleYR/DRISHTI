@@ -5,6 +5,7 @@ import com.drishti.app.net.FrameGeometry
 import com.drishti.app.net.GuidanceContract
 import com.drishti.app.net.OcrConfidenceQualification
 import com.drishti.app.net.OverlayContract
+import com.drishti.app.net.TargetTrackingTelemetry
 
 enum class WalkMode { STARTING, WALKING, PAUSED, READING, DESCRIBING, SOS, STOPPED, ERROR }
 
@@ -43,4 +44,6 @@ data class WalkUiState(
     val explore: ExploreCard? = null,
     /** Last VLM scene answer to display on screen; null once dismissed / timed out. */
     val scene: SceneCard? = null,
+    /** Latest Ask -> Guide target telemetry from the backend; null until first frame. */
+    val target: TargetTrackingTelemetry? = null,
 )

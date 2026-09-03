@@ -29,6 +29,8 @@ class SpatialAudioEngine {
     private val stereoBuf = ShortArray(bufFrames * 2)
 
     @Volatile private var voices: List<SonarVoice> = emptyList()
+    @Volatile private var targetVoice: SonarVoice? = null
+    private val mix = DoubleArray(2)
     @Volatile private var yawShift: Float = 0f
     @Volatile private var masterEnabled: Boolean = true
 
@@ -84,11 +86,15 @@ class SpatialAudioEngine {
         runCatching { track?.pause(); track?.flush(); track?.stop(); track?.release() }
         track = null
         voices = emptyList()
+        targetVoice = null
     }
 
     fun setEnabled(enabled: Boolean) {
         masterEnabled = enabled
-        if (!enabled) voices = emptyList()
+        if (!enabled) {
+            voices = emptyList()
+            targetVoice = null
+        }
     }
 
     /** Positive yaw = user rotated left, so cues shift right to hold their place. */
@@ -98,14 +104,36 @@ class SpatialAudioEngine {
         voices = if (masterEnabled) newVoices.take(2) else emptyList()
     }
 
-    fun clear() { voices = emptyList() }
+    fun clear() {
+        voices = emptyList()
+        targetVoice = null
+    }
+
+    /**
+     * Ask -> Guide target ping: a single low-gain voice panned to the target's
+     * normalized X. Deliberately quiet so it never masks safety speech, and
+     * only audible with headphones. Pass null to silence it.
+     */
+    fun targetPan(normalizedX: Float?) {
+        targetVoice = if (masterEnabled && normalizedX != null) {
+            SonarVoice(
+                freqHz = 700f,
+                pan = (normalizedX * 2f - 1f).coerceIn(-1f, 1f),
+                gain = 0.22f,
+                cadenceHz = 1.1f,
+            )
+        } else {
+            null
+        }
+    }
 
     fun updateFromDetections(detections: List<com.drishti.app.net.DetectionResult>) =
         update(SonarMapping.voicesFrom(detections))
 
     private fun render(out: ShortArray) {
         val active = voices
-        if (active.isEmpty()) {
+        val target = targetVoice
+        if (active.isEmpty() && target == null) {
             out.fill(0)
             sampleClock += bufFrames
             return
@@ -113,24 +141,27 @@ class SpatialAudioEngine {
         val shift = yawShift
         for (i in 0 until bufFrames) {
             val tSec = (sampleClock + i).toDouble() / sampleRate
-            var l = 0.0
-            var r = 0.0
-            for (v in active) {
-                val env = if (v.cadenceHz <= 0f) 1.0
-                else {
-                    val c = 0.5 - 0.5 * cos(2 * PI * v.cadenceHz * tSec)
-                    c * c
-                }
-                val s = sin(2 * PI * v.freqHz * tSec) * v.gain * env
-                val pan = (v.pan + shift).coerceIn(-1f, 1f)
-                val ang = (pan + 1f) * (PI / 4)      // 0..π/2
-                l += s * cos(ang)
-                r += s * sin(ang)
-            }
-            out[i * 2] = toPcm(l)
-            out[i * 2 + 1] = toPcm(r)
+            mix[0] = 0.0
+            mix[1] = 0.0
+            for (v in active) addVoice(v, tSec, shift, mix)
+            if (target != null) addVoice(target, tSec, shift, mix)
+            out[i * 2] = toPcm(mix[0])
+            out[i * 2 + 1] = toPcm(mix[1])
         }
         sampleClock += bufFrames
+    }
+
+    private fun addVoice(v: SonarVoice, tSec: Double, shift: Float, into: DoubleArray) {
+        val env = if (v.cadenceHz <= 0f) 1.0
+        else {
+            val c = 0.5 - 0.5 * cos(2 * PI * v.cadenceHz * tSec)
+            c * c
+        }
+        val s = sin(2 * PI * v.freqHz * tSec) * v.gain * env
+        val pan = (v.pan + shift).coerceIn(-1f, 1f)
+        val ang = (pan + 1f) * (PI / 4)      // 0..π/2
+        into[0] += s * cos(ang)
+        into[1] += s * sin(ang)
     }
 
     private fun toPcm(v: Double): Short {

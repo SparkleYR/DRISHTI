@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
         if (walkActive()) {
             when (keyCode) {
                 KeyEvent.KEYCODE_VOLUME_UP -> {
-                    if (event?.repeatCount == 0) walkService?.controller?.triggerDescribe()
+                    if (event?.repeatCount == 0) walkService?.controller?.triggerAsk()
                     return true
                 }
                 KeyEvent.KEYCODE_VOLUME_DOWN -> {

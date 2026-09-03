@@ -54,7 +54,7 @@
     <string name="explore_routes_label">Route numbers</string>
 
     <!-- VLM scene description / Q&A (on-demand, slow local model) -->
-    <string name="vlm_prompt_ask">What would you like to know about the scene?</string>
+    <string name="vlm_prompt_ask">Ask about the scene, or say find and a place.</string>
     <string name="vlm_no_speech">I didn\'t catch that. Describing what is ahead.</string>
     <string name="vlm_default_prompt">Describe what is directly in front of me, briefly.</string>
     <string name="vlm_working">Working on it. Hold still.</string>
@@ -109,4 +109,18 @@
     <string name="settings_speech_rate">Speech rate</string>
     <string name="settings_risk">Alert sensitivity</string>
     <string name="settings_done">Done</string>
+
+    <!-- Ask -> Lock -> Guide (target locate) -->
+    <string name="locate_working">Looking for the %1$s.</string>
+    <string name="locate_not_found">I could not find the %1$s. Stop and scan again.</string>
+    <string name="locate_unavailable">Target guidance is not available right now.</string>
+    <string-array name="locate_prefixes">
+        <item>"find "</item>
+        <item>"locate "</item>
+        <item>"where is "</item>
+        <item>"where\'s "</item>
+        <item>"take me to "</item>
+        <item>"guide me to "</item>
+        <item>"go to "</item>
+    </string-array>
 </resources>

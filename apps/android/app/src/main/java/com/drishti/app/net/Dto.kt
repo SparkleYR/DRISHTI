@@ -40,6 +40,9 @@ enum class HazardSeverity { LOW, MEDIUM, HIGH, CRITICAL }
 enum class HazardStatus { NEW, VERIFIED, ASSIGNED, IN_PROGRESS, RESOLVED, REJECTED }
 enum class OcrConfidenceQualification { HIGH, LOW, NONE }
 
+enum class TargetTrackingState { IDLE, LOCATING, LOCKED_TRACKING, TARGET_LOST }
+enum class TargetHapticPattern { NONE, TARGET_LEFT_PULSE, TARGET_CENTRE_PULSE, TARGET_RIGHT_PULSE }
+
 // ---- Common geometry -----------------------------------------------------------
 
 @Serializable
@@ -232,6 +235,7 @@ data class FrameAnalysisResponse(
     val corridors: CorridorCosts,
     val overlay: OverlayContract,
     val guidance: GuidanceContract,
+    val targetTracking: TargetTrackingTelemetry? = null,
     val timings: StageTimings,
     val degradedModules: List<String> = emptyList(),
 )
@@ -254,6 +258,58 @@ data class ReadTextResponse(
     val message: String,
     val noTextFound: Boolean,
     val timings: ExploreTimings,
+)
+
+// ---- Target tracking telemetry (Ask -> Lock -> Guide) -----------------------
+
+/**
+ * Per-frame assistive target metadata on every [FrameAnalysisResponse].
+ * The backend is the authority: [speak]/[hapticPattern] are what the client
+ * should render, and when [isSafetyOverridden] is true they are already
+ * blanked so safety guidance stays the only immediate instruction.
+ */
+@Serializable
+data class TargetTrackingTelemetry(
+    val trackingState: TargetTrackingState = TargetTrackingState.IDLE,
+    val targetName: String? = null,
+    val clockDirection: String? = null,
+    val targetCenter: NormalizedPoint? = null,
+    val confidence: Double? = null,
+    val isSafetyOverridden: Boolean = false,
+    val speech: String = "",
+    val speak: Boolean = false,
+    val hapticPattern: TargetHapticPattern = TargetHapticPattern.NONE,
+)
+
+// ---- VLM locate (Ask -> Lock) ---------------------------------------------
+
+@Serializable
+data class VlmTargetBox(
+    val xMin: Double,
+    val yMin: Double,
+    val xMax: Double,
+    val yMax: Double,
+)
+
+@Serializable
+data class VlmLocatedTarget(
+    val label: String,
+    val confidence: Double? = null,
+    val box: VlmTargetBox,
+    val point: NormalizedPoint,
+)
+
+@Serializable
+data class VlmLocateResponse(
+    val schemaVersion: String,
+    val serverTime: String,
+    val model: String,
+    val text: String,
+    val target: VlmLocatedTarget,
+    val clockDirection: String,
+    val trackingAllowed: Boolean,
+    val sourceFrameId: Int? = null,
+    val timings: VlmTimings,
 )
 
 // ---- VLM (on-demand scene description / Q&A) ---------------------------------

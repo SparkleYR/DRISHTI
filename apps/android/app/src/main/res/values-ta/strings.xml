@@ -47,7 +47,7 @@
     <string name="explore_routes_label">வழி எண்கள்</string>
 
     <!-- VLM காட்சி விவரிப்பு / கேள்வி-பதில் (தேவைக்கேற்ப, மெதுவான உள்ளூர் மாதிரி) -->
-    <string name="vlm_prompt_ask">காட்சியைப் பற்றி நீங்கள் என்ன தெரிந்துகொள்ள விரும்புகிறீர்கள்?</string>
+    <string name="vlm_prompt_ask">காட்சியைப் பற்றி கேளுங்கள், அல்லது கண்டுபிடி என்று ஒரு இடத்தைச் சொல்லுங்கள்.</string>
     <string name="vlm_no_speech">புரியவில்லை. முன்னால் உள்ளதை விவரிக்கிறேன்.</string>
     <string name="vlm_default_prompt">எனக்கு நேராக முன்னால் உள்ளதைச் சுருக்கமாக விவரிக்கவும்.</string>
     <string name="vlm_working">வேலை நடக்கிறது. அசையாமல் இருங்கள்.</string>
@@ -85,4 +85,15 @@
     <string name="screen_blanked">திரை அணைந்தது. உதவியாளர் இயங்குகிறது.</string>
     <string name="screen_unblanked">திரை ஆன்.</string>
     <string name="repeat_hint">புதிய வழிகாட்டல் இல்லை.</string>
+
+    <!-- Ask -> Lock -> Guide (target locate) -->
+    <string name="locate_working">%1$s தேடுகிறேன்.</string>
+    <string name="locate_not_found">%1$s கிடைக்கவில்லை. நின்று மீண்டும் பாருங்கள்.</string>
+    <string name="locate_unavailable">இலக்கு வழிகாட்டல் இப்போது கிடைக்கவில்லை.</string>
+    <string-array name="locate_prefixes">
+        <item>"கண்டுபிடி "</item>
+        <item>"தேடு "</item>
+        <item>"எங்கே "</item>
+        <item>"என்னை அழைத்துச் செல் "</item>
+    </string-array>
 </resources>

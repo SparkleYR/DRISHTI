@@ -6,6 +6,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import com.drishti.app.net.GuidanceAction
 import com.drishti.app.net.HapticPattern
+import com.drishti.app.net.TargetHapticPattern
 
 /**
  * The "waveform language" from ANDROID_APP_SPEC §7.1. Directional warnings lean
@@ -40,6 +41,31 @@ class HapticEngine(context: Context) {
                 VibrationEffect.createWaveform(longArrayOf(0, 400), intArrayOf(0, 90), -1)
         }
         vibrator.cancel()
+        vibrator.vibrate(effect)
+    }
+
+    /**
+     * Target-guidance cue. A normal phone has one actuator, so left / centre /
+     * right cannot be *felt* directionally; they are distinguished by rhythm:
+     * left = short-then-long, right = long-then-short, centre = three even taps.
+     * Never cancels an in-flight vibration: the backend only sends a non-NONE
+     * target pattern when guidance is CLEAR, so no safety haptic is running.
+     */
+    fun playTarget(pattern: TargetHapticPattern) {
+        if (!enabled || !vibrator.hasVibrator()) return
+        val effect = when (pattern) {
+            TargetHapticPattern.NONE -> return
+            TargetHapticPattern.TARGET_LEFT_PULSE ->
+                VibrationEffect.createWaveform(longArrayOf(0, 40, 45, 130), intArrayOf(0, 175, 0, 175), -1)
+            TargetHapticPattern.TARGET_RIGHT_PULSE ->
+                VibrationEffect.createWaveform(longArrayOf(0, 130, 45, 40), intArrayOf(0, 175, 0, 175), -1)
+            TargetHapticPattern.TARGET_CENTRE_PULSE ->
+                VibrationEffect.createWaveform(
+                    longArrayOf(0, 85, 70, 85, 70, 85),
+                    intArrayOf(0, 150, 0, 150, 0, 150),
+                    -1,
+                )
+        }
         vibrator.vibrate(effect)
     }
 

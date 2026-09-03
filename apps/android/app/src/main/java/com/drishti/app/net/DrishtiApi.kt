@@ -54,6 +54,17 @@ interface DrishtiApi {
         @Part("prompt") prompt: RequestBody,
     ): Response<VlmQueryResponse>
 
+    /**
+     * Ask -> Lock. `target_name` + `session_id` are query params; no image is
+     * sent — the backend locates against its own in-memory latest frame for
+     * that active Walk session (D-068). Read timeout is widened in [ApiModule].
+     */
+    @POST("api/v1/vlm/locate")
+    suspend fun vlmLocate(
+        @Query("target_name") targetName: String,
+        @Query("session_id") sessionId: String,
+    ): Response<VlmLocateResponse>
+
     @POST("api/v1/hazards")
     suspend fun createHazard(@Body request: CreateHazardRequest): Response<HazardResponse>
 

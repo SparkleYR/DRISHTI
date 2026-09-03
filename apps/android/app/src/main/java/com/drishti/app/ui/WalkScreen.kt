@@ -109,7 +109,7 @@ fun WalkScreen(
             .walkGestures(
                 onDoubleTap = { onStopWalkService(); onExit() },
                 onSingleTap = { controller?.repeatLast() },
-                onLongPress = { controller?.triggerDescribe() },
+                onLongPress = { controller?.triggerAsk() },
                 onTripleTap = {
                     controller?.cancelSos()
                     controller?.cancelHazard()

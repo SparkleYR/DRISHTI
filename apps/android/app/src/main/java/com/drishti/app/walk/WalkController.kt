@@ -19,10 +19,13 @@ import com.drishti.app.hazard.NearbyAdvisor
 import com.drishti.app.net.ApiResult
 import com.drishti.app.net.DrishtiApi
 import com.drishti.app.net.RiskLevel
+import com.drishti.app.net.TargetTrackingState
+import com.drishti.app.net.TargetTrackingTelemetry
 import com.drishti.app.net.StartWalkSessionRequest
 import com.drishti.app.net.WalkSettings
 import com.drishti.app.net.apiCall
 import com.drishti.app.scene.SceneDescriber
+import com.drishti.app.scene.TargetLocator
 import com.drishti.app.settings.DrishtiSettings
 import com.drishti.app.settings.SettingsStore
 import com.drishti.app.sos.SosController
@@ -66,6 +69,7 @@ class WalkController(
     private val focus = AudioFocusManager(app)
     private val explore = ExploreController(api, pipeline, speech, strings)
     private val scene = SceneDescriber(api, pipeline, speech, strings, VoicePrompt(app))
+    private val locator = TargetLocator(api, speech, strings)
     private val hazards = HazardReporter(api, pipeline, speech, strings)
     private val nearby = NearbyAdvisor(api, speech, strings)
     private val sos = SosController(scope, speech, strings)
@@ -86,6 +90,7 @@ class WalkController(
     private var recommendedFps = 2.0
     private var nextAllowedAtMs = 0L
     private var announcedSurfaceDegraded = false
+    private var lastTargetSpeech: String? = null
 
     private var tickers = mutableListOf<Job>()
     private var boundOwner: LifecycleOwner? = null
@@ -136,6 +141,7 @@ class WalkController(
             nearby.reset()
             frameCounter.set(0)
             announcedSurfaceDegraded = false
+            lastTargetSpeech = null
             nextAllowedAtMs = 0L
 
             spatial.start()
@@ -340,11 +346,43 @@ class WalkController(
         }
         haptic.play(resp.guidance.hapticPattern, resp.guidance.action)
         spatial.updateFromDetections(resp.detections)
+        applyTargetTracking(resp.targetTracking)
 
         if (degraded && !announcedSurfaceDegraded) {
             announcedSurfaceDegraded = true
             speech.say(strings.string(R.string.surface_degraded), flush = false)
         }
+    }
+
+    /**
+     * Render the backend's Ask -> Guide decision. The backend stays the
+     * authority: on any non-CLEAR safety action it has already set
+     * `is_safety_overridden` and blanked `speak` / `haptic_pattern`, so target
+     * cues can never preempt or delay a safety instruction. Target speech is
+     * always QUEUE_ADD, never a flush.
+     */
+    private fun applyTargetTracking(tt: TargetTrackingTelemetry?) {
+        if (tt == null) return
+        _state.value = _state.value.copy(target = tt)
+        if (tt.isSafetyOverridden) {
+            spatial.targetPan(null)
+            lastTargetSpeech = null
+            return
+        }
+        if (tt.speak && tt.speech.isNotBlank() && tt.speech != lastTargetSpeech) {
+            speech.say(tt.speech, flush = false, dedupe = false)
+            lastTargetSpeech = tt.speech
+        } else if (!tt.speak) {
+            lastTargetSpeech = null
+        }
+        haptic.playTarget(tt.hapticPattern)
+        spatial.targetPan(
+            if (tt.trackingState == TargetTrackingState.LOCKED_TRACKING) {
+                tt.targetCenter?.x?.toFloat()
+            } else {
+                null
+            },
+        )
     }
 
     // ---- user actions ---------------------------------------------------
@@ -384,34 +422,68 @@ class WalkController(
     private var sceneClearJob: Job? = null
 
     /**
-     * On-demand VLM scene description. Pauses the Walk loop, captures a voice
-     * question, round-trips the slow `/vlm/query` endpoint, speaks the answer,
-     * then resumes. Deliberately separate from the real-time loop.
+     * The one "Ask" gesture. Pauses the Walk loop, speaks a prompt, captures one
+     * spoken phrase, then routes by a leading keyword:
+     *
+     *  - "find <place>" / "where is <place>" / ... -> `/vlm/locate`: lock the
+     *    target so per-frame `target_tracking` telemetry then guides the user.
+     *  - anything else (or nothing heard) -> Scene Mode `/vlm/query`: describe
+     *    what is ahead, unchanged.
+     *
+     * Locate is only reachable while WALKING, so an active session always backs
+     * the backend's in-memory frame and the telemetry stream.
      */
-    fun triggerDescribe() = scope.launch {
+    fun triggerAsk() = scope.launch {
         if (_state.value.mode != WalkMode.WALKING) return@launch
+        val id = sessionId ?: return@launch
         _state.value = _state.value.copy(mode = WalkMode.DESCRIBING, message = null)
         spatial.clear()
         haptic.ack()
-        val result = scene.describeOnce(settings.language.tag)
-        if (result != null) {
-            _state.value = _state.value.copy(
-                scene = SceneCard(
-                    question = result.question,
-                    answer = result.answer,
-                    totalMs = result.totalMs,
-                    shownAtMs = System.currentTimeMillis(),
-                ),
-            )
-            sceneClearJob?.cancel()
-            sceneClearJob = scope.launch {
-                delay(35_000)
-                _state.value = _state.value.copy(scene = null)
+        lastTargetSpeech = null
+
+        val heard = scene.listenForRequest(settings.language.tag)
+        val target = extractLocateTarget(heard)
+        if (target != null) {
+            locator.locateOnce(id, target)
+            // Ongoing guidance now flows from target_tracking on each walk frame.
+        } else {
+            val result = scene.describeOnce(heard)
+            if (result != null) {
+                _state.value = _state.value.copy(
+                    scene = SceneCard(
+                        question = result.question,
+                        answer = result.answer,
+                        totalMs = result.totalMs,
+                        shownAtMs = System.currentTimeMillis(),
+                    ),
+                )
+                sceneClearJob?.cancel()
+                sceneClearJob = scope.launch {
+                    delay(35_000)
+                    _state.value = _state.value.copy(scene = null)
+                }
             }
         }
         if (_state.value.mode == WalkMode.DESCRIBING) {
             _state.value = _state.value.copy(mode = WalkMode.WALKING)
         }
+    }
+
+    /**
+     * Strip a leading locate keyword and return the target name, or null when
+     * the phrase is a plain scene question. Case-insensitive; trailing "?" and
+     * "." are dropped from the name.
+     */
+    private fun extractLocateTarget(heard: String?): String? {
+        val raw = heard?.trim().orEmpty()
+        if (raw.isEmpty()) return null
+        val lower = raw.lowercase()
+        for (prefix in strings.locatePrefixes()) {
+            if (prefix.isNotBlank() && lower.startsWith(prefix)) {
+                return raw.substring(prefix.length).trim().trimEnd('?', '.', '!').ifBlank { null }
+            }
+        }
+        return null
     }
 
     fun armHazard() {

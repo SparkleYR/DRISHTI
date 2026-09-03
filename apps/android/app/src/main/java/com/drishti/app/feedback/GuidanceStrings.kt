@@ -73,4 +73,13 @@ class GuidanceStrings(appContext: Context) {
     }
 
     fun string(resId: Int, vararg args: Any): String = localized.getString(resId, *args)
+
+    /**
+     * Lower-cased leading phrases that turn a spoken request into an
+     * "Ask -> Lock" target instead of a Scene-Mode question. Locale-specific;
+     * each item keeps its trailing space so `startsWith` leaves a clean name.
+     */
+    fun locatePrefixes(): List<String> =
+        localized.resources.getStringArray(R.array.locate_prefixes)
+            .map { it.lowercase() }
 }
