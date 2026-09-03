@@ -1,0 +1,41 @@
+# Python
+.venv/
+.python/
+.uv-cache/
+.tools/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node and Expo
+node_modules/
+dist/
+coverage/
+.expo/
+*.tsbuildinfo
+
+# Local configuration
+.env
+apps/*/.env
+
+# Local runtime data
+data/*
+!data/.gitkeep
+logs/
+*.db
+*.db-shm
+*.db-wal
+
+# Development-downloaded local model weights
+models/**/*.pt
+models/**/*.bin
+models/**/*.safetensors
+!models/**/README.md
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

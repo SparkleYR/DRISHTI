@@ -1,0 +1,18 @@
+{
+  "coordinate_space": "ORIENTED_CAPTURE_NORMALIZED",
+  "scenarios": {
+    "chair_centre_left_blocked": [
+      {"label": "chair", "confidence": 0.95, "bbox": [0.38, 0.42, 0.62, 0.98]},
+      {"label": "bag", "confidence": 0.90, "bbox": [0.08, 0.50, 0.36, 0.98]}
+    ],
+    "chair_centre_right_blocked": [
+      {"label": "chair", "confidence": 0.95, "bbox": [0.38, 0.42, 0.62, 0.98]},
+      {"label": "bag", "confidence": 0.90, "bbox": [0.64, 0.50, 0.92, 0.98]}
+    ],
+    "all_corridors_blocked": [
+      {"label": "chair", "confidence": 0.95, "bbox": [0.36, 0.40, 0.64, 0.99]},
+      {"label": "chair", "confidence": 0.95, "bbox": [0.06, 0.40, 0.38, 0.99]},
+      {"label": "chair", "confidence": 0.95, "bbox": [0.62, 0.40, 0.94, 0.99]}
+    ]
+  }
+}

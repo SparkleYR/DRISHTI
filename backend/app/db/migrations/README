@@ -1,0 +1,2 @@
+Phase-owned Alembic revisions live in versions/. The Phase 0 baseline creates only
+Alembic's local schema-version table and no product feature tables.

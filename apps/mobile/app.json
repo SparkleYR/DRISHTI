@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "DRISHTI",
+    "slug": "drishti-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "local.drishti.mobile",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow the DRISHTI test harness to capture frames for the local backend.",
+          "recordAudioAndroid": false
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "@drishti/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "export:android": "expo export --platform android --output-dir dist/phase7-export",
+    "test": "jest --runInBand",
+    "typecheck": "tsc --noEmit",
+    "config:check": "expo config --type public"
+  },
+  "dependencies": {
+    "@drishti/contracts": "0.0.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~57.0.19",
+    "expo-camera": "~57.0.4",
+    "expo-file-system": "~57.0.6",
+    "expo-image-manipulator": "~57.0.15",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-svg": "15.15.4"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.14",
+    "@types/react": "~19.2.2",
+    "jest": "~29.7.0",
+    "jest-expo": "~57.0.5",
+    "typescript": "~6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/dist/"
+    ]
+  }
+}

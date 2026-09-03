@@ -1,0 +1,290 @@
+{"kind":"deck","id":"pr/k7uif9","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"DEFAULT"}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"THE FLAGSHIP MIC HACKATHON OF TECHNOVIT","textShapes":19}
+{"kind":"shape","id":"sh/gf61o3e5","slide":1,"name":"Google Shape;12;p1","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/fehkjul4","slide":1,"name":"Google Shape;13;p1","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/vuhwzy94","slide":1,"name":"Google Shape;14;p1","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/qhwfmt4j","slide":1,"name":"Google Shape;15;p1","text":"THE FLAGSHIP MIC HACKATHON OF TECHNOVIT","textPreview":"THE FLAGSHIP MIC HACKATHON OF TECHNOVIT","textChars":39,"textLines":1,"bbox":[103.68,34.56,499.2,23.04]}
+{"kind":"textbox","id":"sh/f2t4fihc","slide":1,"name":"Google Shape;16;p1","text":"IDEA SUBMISSION — TEMPLATE","textPreview":"IDEA SUBMISSION — TEMPLATE","textChars":26,"textLines":1,"bbox":[672,34.56,417.6,23.04]}
+{"kind":"shape","id":"sh/xoz6horq","slide":1,"name":"Google Shape;17;p1","bbox":[57.6,96,792,126.72]}
+{"kind":"textbox","id":"sh/ql8329on","slide":1,"name":"Google Shape;18;p1","text":"RECURSION","textPreview":"RECURSION","textChars":9,"textLines":1,"bbox":[81.6,100.8,758.4,117.12]}
+{"kind":"shape","id":"sh/srm5wbyl","slide":1,"name":"Google Shape;19;p1","bbox":[888,113.28,206.4,59.52]}
+{"kind":"textbox","id":"sh/je1on2p8","slide":1,"name":"Google Shape;20;p1","text":"EDITION II","textPreview":"EDITION II","textChars":10,"textLines":1,"bbox":[888,114.24,206.4,59.52]}
+{"kind":"shape","id":"sh/dw7y5sra","slide":1,"name":"Google Shape;21;p1","bbox":[1137.6,94.08,88.32,88.32]}
+{"kind":"shape","id":"sh/76lwzm1o","slide":1,"name":"Google Shape;22;p1","bbox":[1181.76,94.08,0,88.32]}
+{"kind":"shape","id":"sh/cbe9sb25","slide":1,"name":"Google Shape;23;p1","bbox":[1181.76,138.24,44.16,0]}
+{"kind":"shape","id":"sh/fqhcvid0","slide":1,"name":"Google Shape;24;p1","bbox":[1203.84,138.24,0,44.16]}
+{"kind":"shape","id":"sh/0bmhwzml","slide":1,"name":"Google Shape;25;p1","bbox":[1203.84,160.32,22.08,0]}
+{"kind":"textbox","id":"sh/8bahwji5","slide":1,"name":"Google Shape;26;p1","text":"to understand recursion, first understand recursion","textPreview":"to understand recursion, first understand recursion","textChars":51,"textLines":1,"bbox":[62.4,251.52,720,26.88]}
+{"kind":"shape","id":"sh/adw3i50b","slide":1,"name":"Google Shape;27;p1","bbox":[57.6,305.28,763.2,328.32]}
+{"kind":"shape","id":"sh/4b6xcr2h","slide":1,"name":"Google Shape;28;p1","bbox":[94.08,337.92,13.44,13.44]}
+{"kind":"textbox","id":"sh/u9g3qx8f","slide":1,"name":"Google Shape;29;p1","text":"PROJECT TITLE","textPreview":"PROJECT TITLE","textChars":13,"textLines":1,"bbox":[117.12,334.08,288,23.04]}
+{"kind":"textbox","id":"sh/qtk3mx07","slide":1,"name":"Google Shape;30;p1","text":"DRISHTI - Local AI Safety Assistance for Indoor Hall Mobility","textPreview":"DRISHTI - Local AI Safety Assistance for Indoor Hall Mobility","textChars":61,"textLines":1,"bbox":[94.08,362.88,691.2,36.75]}
+{"kind":"shape","id":"sh/g32pg3ul","slide":1,"name":"Google Shape;31;p1","bbox":[94.08,408.27,691.2,0]}
+{"kind":"shape","id":"sh/fet8by1g","slide":1,"name":"Google Shape;32;p1","bbox":[94.08,431.31,13.44,13.44]}
+{"kind":"textbox","id":"sh/q5c7atkv","slide":1,"name":"Google Shape;33;p1","text":"ONE-LINE PITCH","textPreview":"ONE-LINE PITCH","textChars":14,"textLines":1,"bbox":[117.12,427.47,288,23.04]}
+{"kind":"textbox","id":"sh/1cbmtor6","slide":1,"name":"Google Shape;34;p1","text":"A local indoor safety assistant with live guidance, on-demand OCR/VLM, and hall hazard intelligence.","textPreview":"A local indoor safety assistant with live guidance, on-demand OCR/VLM, and hall hazard intelligence.","textChars":100,"textLines":1,"bbox":[94.08,454.35,691.2,30.72]}
+{"kind":"shape","id":"sh/d4fm94bu","slide":1,"name":"Google Shape;35;p1","bbox":[94.08,494.67,691.2,0]}
+{"kind":"shape","id":"sh/7up43q94","slide":1,"name":"Google Shape;36;p1","bbox":[94.08,517.71,13.44,13.44]}
+{"kind":"textbox","id":"sh/fa9w7e18","slide":1,"name":"Google Shape;37;p1","text":"TRACK","textPreview":"TRACK","textChars":5,"textLines":1,"bbox":[117.12,513.87,288,23.04]}
+{"kind":"textbox","id":"sh/1032lwju","slide":1,"name":"Google Shape;38;p1","text":"Smart Living - PS1","textPreview":"Smart Living - PS1","textChars":18,"textLines":1,"bbox":[94.08,540.75,691.2,40.32]}
+{"kind":"shape","id":"sh/twnupgvi","slide":1,"name":"Google Shape;39;p1","bbox":[94.08,606.72,691.2,0]}
+{"kind":"shape","id":"sh/8ry9g3m5","slide":1,"name":"Google Shape;40;p1","bbox":[854.4,305.28,367.68,328.32]}
+{"kind":"textbox","id":"sh/zu10ny18","slide":1,"name":"Google Shape;41;p1","text":"TEAM","textPreview":"TEAM","textChars":4,"textLines":1,"bbox":[885.12,328.32,288,23.04]}
+{"kind":"textbox","id":"sh/obmp8rqd","slide":1,"name":"Google Shape;42;p1","text":"62 - Hallucinators","textPreview":"62 - Hallucinators","textChars":18,"textLines":1,"bbox":[885.12,351.36,307.2,36.48]}
+{"kind":"shape","id":"sh/f6p0bih0","slide":1,"name":"Google Shape;43;p1","bbox":[885.12,401.28,307.2,0]}
+{"kind":"textbox","id":"sh/knepwry9","slide":1,"name":"Google Shape;44;p1","text":"Madhav Khurana - AI/ML","textPreview":"Madhav Khurana - AI/ML","textChars":22,"textLines":1,"bbox":[885.12,414.72,316.8,26.88]}
+{"kind":"textbox","id":"sh/qp8f654z","slide":1,"name":"Google Shape;45;p1","text":"Yash Raj - Backend","textPreview":"Yash Raj - Backend","textChars":18,"textLines":1,"bbox":[885.12,446.4,316.8,26.88]}
+{"kind":"textbox","id":"sh/tkbi98v6","slide":1,"name":"Google Shape;46;p1","text":"Aryan Raj - Frontend","textPreview":"Aryan Raj - Frontend","textChars":20,"textLines":1,"bbox":[885.12,478.08,316.8,26.88]}
+{"kind":"shape","id":"sh/dw7yx07y","slide":1,"name":"Google Shape;49;p1","bbox":[885.12,518.4,307.2,0]}
+{"kind":"textbox","id":"sh/4rmhgrad","slide":1,"name":"Google Shape;50;p1","text":"full contact sheet → frame 09","textPreview":"full contact sheet → frame 09","textChars":29,"textLines":1,"bbox":[885.12,528,316.8,23.04]}
+{"kind":"shape","id":"sh/i94v2l8b","slide":1,"name":"Google Shape;51;p1","bbox":[57.6,648.96,624,23.04]}
+{"kind":"shape","id":"sh/m5gf25wb","slide":1,"name":"Google Shape;52;p1","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/q54r6l4j","slide":1,"name":"Google Shape;53;p1","text":"FRAME 01 / 09","textPreview":"FRAME 01 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"shape","id":"sh/8ni90fyh","slide":1,"name":"Google Shape;54;p1","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/e90rahcr","slide":1,"name":"Google Shape;55;p1","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"Cover: fill TRACK, PROJECT TITLE, ONE-LINE PITCH and TEAM names. Phone & email for each member goes on the last slide, frame 09. Keep layout, colours & logos as-is. RECURSION is TechnoVIT's flagship hackathon."}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"RECURSION - EDITION II","textShapes":18}
+{"kind":"shape","id":"sh/u94b2dof","slide":2,"name":"Google Shape;61;p2","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/c769gvat","slide":2,"name":"Google Shape;62;p2","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/mxsbq107","slide":2,"name":"Google Shape;63;p2","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/vahcnm5c","slide":2,"name":"Google Shape;64;p2","text":"RECURSION - EDITION II","textPreview":"RECURSION - EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/xknidcvy","slide":2,"name":"Google Shape;65;p2","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/utgzitcf","slide":2,"name":"Google Shape;66;p2","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/2twjqhs3","slide":2,"name":"Google Shape;67;p2","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/o7ihk3ul","slide":2,"name":"Google Shape;68;p2","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/ripcj2ds","slide":2,"name":"Google Shape;69;p2","text":"FRAME 02 / 09","textPreview":"FRAME 02 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/lc3ydw7u","slide":2,"name":"Google Shape;70;p2","text":"PROBLEM DEFINITION","textPreview":"PROBLEM DEFINITION","textChars":18,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/ruxcrud0","slide":2,"name":"Google Shape;71;p2","text":"answer in 2–3 lines · readable outside your track","textPreview":"answer in 2–3 lines · readable outside your track","textChars":49,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"shape","id":"sh/xcba9gja","slide":2,"name":"Google Shape;72;p2","bbox":[57.6,209.28,574.08,207.36]}
+{"kind":"shape","id":"sh/ov6h0b2t","slide":2,"name":"Google Shape;73;p2","bbox":[86.4,238.08,40.32,40.32]}
+{"kind":"textbox","id":"sh/5svatcju","slide":2,"name":"Google Shape;74;p2","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[86.4,239.04,40.32,40.32]}
+{"kind":"textbox","id":"sh/reh0ve1o","slide":2,"name":"Google Shape;75;p2","text":"WHO & HOW OFTEN","textPreview":"WHO & HOW OFTEN","textChars":15,"textLines":1,"bbox":[144,241.92,458.88,34.56]}
+{"kind":"textbox","id":"sh/61knyxgn","slide":2,"name":"Google Shape;76;p2","text":"Students, staff & visitors with low vision or mobility challenges, plus anyone momentarily distracted - every time they navigate an unfamiliar indoor corridor, stairwell, or crowded common area.","textPreview":"Students, staff & visitors with low vision or mobility challenges, plus anyone momentarily distracted - every time they navigate an unfam...","textChars":194,"textLines":1,"bbox":[86.4,300.48,516.48,96.96]}
+{"kind":"shape","id":"sh/zepkfu90","slide":2,"name":"Google Shape;77;p2","bbox":[684.48,209.28,574.08,207.36]}
+{"kind":"shape","id":"sh/mpkjal07","slide":2,"name":"Google Shape;78;p2","bbox":[713.28,238.08,40.32,40.32]}
+{"kind":"textbox","id":"sh/qhojuto3","slide":2,"name":"Google Shape;79;p2","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[713.28,239.04,40.32,40.32]}
+{"kind":"textbox","id":"sh/6d8v290n","slide":2,"name":"Google Shape;80;p2","text":"TODAY'S WORKAROUND","textPreview":"TODAY'S WORKAROUND","textChars":18,"textLines":1,"bbox":[770.88,241.92,458.88,34.56]}
+{"kind":"textbox","id":"sh/h4f2dkji","slide":2,"name":"Google Shape;81;p2","text":"A white cane, guide dog, or sighted companion - or an ad-hoc phone call/in-person report to facilities after a hazard is already spotted.","textPreview":"A white cane, guide dog, or sighted companion - or an ad-hoc phone call/in-person report to facilities after a hazard is already spotted.","textChars":137,"textLines":1,"bbox":[713.28,300.48,516.48,96.96]}
+{"kind":"shape","id":"sh/ozupwzil","slide":2,"name":"Google Shape;82;p2","bbox":[57.6,451.2,574.08,207.36]}
+{"kind":"shape","id":"sh/hgz25ona","slide":2,"name":"Google Shape;83;p2","bbox":[86.4,480,40.32,40.32]}
+{"kind":"textbox","id":"sh/v25ov25s","slide":2,"name":"Google Shape;84;p2","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[86.4,480.96,40.32,40.32]}
+{"kind":"textbox","id":"sh/5sva1wve","slide":2,"name":"Google Shape;85;p2","text":"WHY IT FALLS SHORT","textPreview":"WHY IT FALLS SHORT","textChars":18,"textLines":1,"bbox":[144,483.84,458.88,34.56]}
+{"kind":"textbox","id":"sh/snmxkzu5","slide":2,"name":"Google Shape;86;p2","text":"None of these share real-time evidence with anyone else, so verifying and fixing a hazard still depends on someone finding the right person to tell.","textPreview":"None of these share real-time evidence with anyone else, so verifying and fixing a hazard still depends on someone finding the right pers...","textChars":148,"textLines":1,"bbox":[86.4,542.4,516.48,96.96]}
+{"kind":"shape","id":"sh/2l4bmx8n","slide":2,"name":"Google Shape;87;p2","bbox":[684.48,451.2,574.08,207.36]}
+{"kind":"shape","id":"sh/obud4vix","slide":2,"name":"Google Shape;88;p2","bbox":[713.28,480,40.32,40.32]}
+{"kind":"textbox","id":"sh/yd0fql4f","slide":2,"name":"Google Shape;89;p2","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[713.28,480.96,40.32,40.32]}
+{"kind":"textbox","id":"sh/1gfi1kj6","slide":2,"name":"Google Shape;90;p2","text":"EVIDENCE","textPreview":"EVIDENCE","textChars":8,"textLines":1,"bbox":[770.88,483.84,458.88,34.56]}
+{"kind":"textbox","id":"sh/hwv29gj2","slide":2,"name":"Google Shape;91;p2","text":"MIC VIT Chennai's own PS1 brief names delayed hazard detection, weak sensor-to-response communication, and manual safety intervention as open problems in IoT & Smart Living.","textPreview":"MIC VIT Chennai's own PS1 brief names delayed hazard detection, weak sensor-to-response communication, and manual safety intervention as ...","textChars":173,"textLines":1,"bbox":[713.28,542.4,516.48,96.96]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":"Answer each question in 2–3 plain lines. Someone outside your track should understand every answer."}
+{"kind":"slide","id":"sl/ofy9wn61","slide":3,"title":"RECURSION — EDITION II","textShapes":18}
+{"kind":"shape","id":"sh/4betwzux","slide":3,"name":"Google Shape;97;p3","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/at4ril07","slide":3,"name":"Google Shape;98;p3","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/bmh0rmh4","slide":3,"name":"Google Shape;99;p3","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/fqh4jq14","slide":3,"name":"Google Shape;100;p3","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/o3up0jed","slide":3,"name":"Google Shape;101;p3","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/ov2h8bil","slide":3,"name":"Google Shape;102;p3","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/hsfyhgre","slide":3,"name":"Google Shape;103;p3","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/mlknuxcj","slide":3,"name":"Google Shape;104;p3","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/itc3m1gv","slide":3,"name":"Google Shape;105;p3","text":"FRAME 03 / 09","textPreview":"FRAME 03 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/qlkzyh4z","slide":3,"name":"Google Shape;106;p3","text":"PROPOSED SOLUTION","textPreview":"PROPOSED SOLUTION","textChars":17,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/4rup47i9","slide":3,"name":"Google Shape;107;p3","text":"name it plainly · connect straight back to frame 02","textPreview":"name it plainly · connect straight back to frame 02","textChars":51,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"shape","id":"sh/3ipc7its","slide":3,"name":"Google Shape;108;p3","bbox":[57.6,216,412.8,424.32]}
+{"kind":"textbox","id":"sh/oru5gn25","slide":3,"name":"Google Shape;109;p3","text":"PRODUCT / SYSTEM NAME","textPreview":"PRODUCT / SYSTEM NAME","textChars":21,"textLines":1,"bbox":[91.2,249.6,345.6,23.04]}
+{"kind":"textbox","id":"sh/jmdwn2ls","slide":3,"name":"Google Shape;110;p3","text":"DRISHTI","textPreview":"DRISHTI","textChars":7,"textLines":1,"bbox":[91.2,280.32,345.6,129.6]}
+{"kind":"shape","id":"sh/kjuxo7ux","slide":3,"name":"Google Shape;111;p3","bbox":[91.2,427.2,345.6,0]}
+{"kind":"textbox","id":"sh/a9sj29gv","slide":3,"name":"Google Shape;112;p3","text":"A phone-camera safety assistant: local edge AI turns a live hall view into cautious walking guidance, on-demand OCR/VLM answers, and recurring hazard intelligence.","textPreview":"A phone-camera safety assistant: local edge AI turns a live hall view into cautious walking guidance, on-demand OCR/VLM answers, and recu...","textChars":163,"textLines":1,"bbox":[91.2,446.4,345.6,124.8]}
+{"kind":"shape","id":"sh/0zqd0f6p","slide":3,"name":"Google Shape;113;p3","bbox":[91.2,580.8,40.32,40.32]}
+{"kind":"shape","id":"sh/hwfudsr6","slide":3,"name":"Google Shape;114;p3","bbox":[111.36,580.8,0,40.32]}
+{"kind":"shape","id":"sh/vmlgfeto","slide":3,"name":"Google Shape;115;p3","bbox":[111.36,600.96,20.16,0]}
+{"kind":"shape","id":"sh/rahsja9k","slide":3,"name":"Google Shape;116;p3","bbox":[513.6,216,708.48,129.6]}
+{"kind":"shape","id":"sh/3ehkju1s","slide":3,"name":"Google Shape;117;p3","bbox":[540.48,240.96,38.4,38.4]}
+{"kind":"textbox","id":"sh/kjq103i9","slide":3,"name":"Google Shape;118;p3","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[540.48,241.92,38.4,38.4]}
+{"kind":"textbox","id":"sh/gf6lgzi1","slide":3,"name":"Google Shape;119;p3","text":"WHAT A USER DOES","textPreview":"WHAT A USER DOES","textChars":16,"textLines":1,"bbox":[595.2,242.88,602.88,32.64]}
+{"kind":"textbox","id":"sh/lsf6tw7u","slide":3,"name":"Google Shape;120;p3","text":"Points the phone camera at the walking area; DRISHTI speaks/vibrates a cautious action (CAUTION, MOVE_LEFT, MOVE_RIGHT, STOP, PAUSE_UNCLEAR). The user can also tap to report a confirmed hazard or read visible text on demand.","textPreview":"Points the phone camera at the walking area; DRISHTI speaks/vibrates a cautious action (CAUTION, MOVE_LEFT, MOVE_RIGHT, STOP, PAUSE_UNCLE...","textChars":224,"textLines":1,"bbox":[595.2,285.12,598.08,48]}
+{"kind":"shape","id":"sh/0bq98vid","slide":3,"name":"Google Shape;121;p3","bbox":[513.6,363.84,708.48,129.6]}
+{"kind":"shape","id":"sh/3ehwjih8","slide":3,"name":"Google Shape;122;p3","bbox":[540.48,388.8,38.4,38.4]}
+{"kind":"textbox","id":"sh/3e5wnq14","slide":3,"name":"Google Shape;123;p3","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[540.48,389.76,38.4,38.4]}
+{"kind":"textbox","id":"sh/apc76xwv","slide":3,"name":"Google Shape;124;p3","text":"WHY IT BEATS THE WORKAROUND","textPreview":"WHY IT BEATS THE WORKAROUND","textChars":27,"textLines":1,"bbox":[595.2,390.72,602.88,32.64]}
+{"kind":"textbox","id":"sh/qtgjyhsf","slide":3,"name":"Google Shape;125;p3","text":"Runs entirely on a local laptop over private Wi-Fi, so Walk Mode stays independent; the dashboard is optional local hall intelligence, not an approval gate for guidance.","textPreview":"Runs entirely on a local laptop over private Wi-Fi, so Walk Mode stays independent; the dashboard is optional local hall intelligence, no...","textChars":169,"textLines":1,"bbox":[595.2,432.96,598.08,48]}
+{"kind":"shape","id":"sh/gr6ps325","slide":3,"name":"Google Shape;126;p3","bbox":[513.6,511.68,708.48,129.6]}
+{"kind":"shape","id":"sh/xs7y1w3u","slide":3,"name":"Google Shape;127;p3","bbox":[540.48,536.64,38.4,38.4]}
+{"kind":"textbox","id":"sh/tk3e9sbm","slide":3,"name":"Google Shape;128;p3","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[540.48,537.6,38.4,38.4]}
+{"kind":"textbox","id":"sh/3yhc3y9s","slide":3,"name":"Google Shape;129;p3","text":"WHAT'S GENUINELY DIFFERENT","textPreview":"WHAT'S GENUINELY DIFFERENT","textChars":26,"textLines":1,"bbox":[595.2,538.56,602.88,32.64]}
+{"kind":"textbox","id":"sh/q18vuxwv","slide":3,"name":"Google Shape;130;p3","text":"Weak or contradictory evidence returns PAUSE_UNCLEAR instead of a guess - DRISHTI pairs personal mobility assistance with an operational verify-assign-resolve hazard workflow.","textPreview":"Weak or contradictory evidence returns PAUSE_UNCLEAR instead of a guess - DRISHTI pairs personal mobility assistance with an operational ...","textChars":175,"textLines":1,"bbox":[595.2,580.8,598.08,48]}
+{"kind":"notes","id":"nt/ofy9wn61","slide":3,"text":"Name the product plainly. The three answers should connect directly back to the problems on frame 02."}
+{"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"RECURSION — EDITION II","textShapes":22}
+{"kind":"shape","id":"sh/6t8ne9cr","slide":4,"name":"Google Shape;136;p4","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/wz2hob2h","slide":4,"name":"Google Shape;137;p4","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/hsbidk3y","slide":4,"name":"Google Shape;138;p4","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/gj29kzyx","slide":4,"name":"Google Shape;139;p4","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/07a1s3id","slide":4,"name":"Google Shape;140;p4","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/mp0zex8r","slide":4,"name":"Google Shape;141;p4","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/r6dsre1s","slide":4,"name":"Google Shape;142;p4","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/felgvaxs","slide":4,"name":"Google Shape;143;p4","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/oz2lo3ip","slide":4,"name":"Google Shape;144;p4","text":"FRAME 04 / 09","textPreview":"FRAME 04 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/sby9snet","slide":4,"name":"Google Shape;145;p4","text":"SYSTEM ARCHITECTURE","textPreview":"SYSTEM ARCHITECTURE","textChars":19,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/h8bydcje","slide":4,"name":"Google Shape;146;p4","text":"walk the full flow · name real services & models","textPreview":"walk the full flow · name real services & models","textChars":48,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"shape","id":"sh/lwbexkni","slide":4,"name":"Google Shape;147;p4","bbox":[57.6,209.28,1164.48,190.08]}
+{"kind":"textbox","id":"sh/2tczilof","slide":4,"name":"Google Shape;148;p4","text":"FIG. 04-A — SYSTEM FLOW","textPreview":"FIG. 04-A — SYSTEM FLOW","textChars":23,"textLines":1,"bbox":[88.32,230.4,384,21.12]}
+{"kind":"shape","id":"sh/25wzqp0z","slide":4,"name":"Google Shape;149;p4","bbox":[149.28,266.88,144,59.52]}
+{"kind":"textbox","id":"sh/y1c3atsj","slide":4,"name":"Google Shape;150;p4","text":"PHONE\nCAMERA","textPreview":"PHONE | CAMERA","textChars":12,"textLines":2,"bbox":[149.28,266.88,144,59.52]}
+{"kind":"shape","id":"sh/wfq5s7y5","slide":4,"name":"Google Shape;151;p4","bbox":[299.04,296.64,24.96,0]}
+{"kind":"shape","id":"sh/fil4z6ls","slide":4,"name":"Google Shape;152;p4","bbox":[329.76,266.88,148.8,59.52]}
+{"kind":"textbox","id":"sh/vuhsvm1s","slide":4,"name":"Google Shape;153;p4","text":"EXPO TEST\nHARNESS","textPreview":"EXPO TEST | HARNESS","textChars":17,"textLines":2,"bbox":[329.76,266.88,148.8,59.52]}
+{"kind":"shape","id":"sh/6tkfet03","slide":4,"name":"Google Shape;154;p4","bbox":[484.32,296.64,24.96,0]}
+{"kind":"shape","id":"sh/9wbilcj2","slide":4,"name":"Google Shape;155;p4","bbox":[515.04,266.88,187.2,59.52]}
+{"kind":"textbox","id":"sh/x4ripsny","slide":4,"name":"Google Shape;156;p4","text":"FASTAPI +\nSQLITE + VLM\n(LOCAL)","textPreview":"FASTAPI + | SQLITE + VLM | (LOCAL)","textChars":30,"textLines":3,"bbox":[515.04,266.88,187.2,59.52]}
+{"kind":"shape","id":"sh/nahozel0","slide":4,"name":"Google Shape;157;p4","bbox":[708,296.64,24.96,0]}
+{"kind":"shape","id":"sh/s3uts325","slide":4,"name":"Google Shape;158;p4","bbox":[738.72,266.88,244.8,59.52]}
+{"kind":"textbox","id":"sh/qtsv69kj","slide":4,"name":"Google Shape;159;p4","text":"YOLO11n + SEGFORMER-B0\n(RTX 4060, LOCAL)","textPreview":"YOLO11n + SEGFORMER-B0 | (RTX 4060, LOCAL)","textChars":40,"textLines":2,"bbox":[738.72,266.88,244.8,59.52]}
+{"kind":"shape","id":"sh/j294zy50","slide":4,"name":"Google Shape;160;p4","bbox":[989.28,296.64,24.96,0]}
+{"kind":"shape","id":"sh/cbu1czep","slide":4,"name":"Google Shape;161;p4","bbox":[1020,266.88,110.4,59.52]}
+{"kind":"textbox","id":"sh/zel0je1w","slide":4,"name":"Google Shape;162;p4","text":"GUIDANCE +\nHALL DASHBOARD","textPreview":"GUIDANCE + | HALL DASHBOARD","textChars":25,"textLines":2,"bbox":[1020,266.88,110.4,59.52]}
+{"kind":"textbox","id":"sh/x8n6d0z6","slide":4,"name":"Google Shape;163;p4","text":"All boxes above run on the team's laptop over a private Wi-Fi LAN - no cloud round-trip at runtime.","textPreview":"All boxes above run on the team's laptop over a private Wi-Fi LAN - no cloud round-trip at runtime.","textChars":99,"textLines":1,"bbox":[57.6,353.28,1164.48,24.96]}
+{"kind":"shape","id":"sh/0n29cv2d","slide":4,"name":"Google Shape;164;p4","bbox":[57.6,439.68,375.36,201.6]}
+{"kind":"shape","id":"sh/x4butwbu","slide":4,"name":"Google Shape;165;p4","bbox":[84.48,464.64,38.4,38.4]}
+{"kind":"textbox","id":"sh/j658ry18","slide":4,"name":"Google Shape;166;p4","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[84.48,465.6,38.4,38.4]}
+{"kind":"textbox","id":"sh/j2h0bex0","slide":4,"name":"Google Shape;167;p4","text":"KEY TECHNICAL DECISION","textPreview":"KEY TECHNICAL DECISION","textChars":22,"textLines":1,"bbox":[136.32,462.72,274.56,48]}
+{"kind":"textbox","id":"sh/al4n2h0z","slide":4,"name":"Google Shape;168;p4","text":"YOLO11n detects indoor obstacles while SegFormer-B0 reads walkable surface and walls. A deterministic risk engine governs Walk Mode; the local VLM answers only explicit Explore requests.","textPreview":"YOLO11n detects indoor obstacles while SegFormer-B0 reads walkable surface and walls. A deterministic risk engine governs Walk Mode; the ...","textChars":186,"textLines":1,"bbox":[84.48,524.16,321.6,96]}
+{"kind":"shape","id":"sh/falg361w","slide":4,"name":"Google Shape;169;p4","bbox":[452.16,439.68,375.36,201.6]}
+{"kind":"shape","id":"sh/r25obq50","slide":4,"name":"Google Shape;170;p4","bbox":[479.04,464.64,38.4,38.4]}
+{"kind":"textbox","id":"sh/u5sfm987","slide":4,"name":"Google Shape;171;p4","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[479.04,465.6,38.4,38.4]}
+{"kind":"textbox","id":"sh/xc7a1c7i","slide":4,"name":"Google Shape;172;p4","text":"HARDEST PART TO BUILD","textPreview":"HARDEST PART TO BUILD","textChars":21,"textLines":1,"bbox":[530.88,462.72,274.56,48]}
+{"kind":"textbox","id":"sh/54bm5cra","slide":4,"name":"Google Shape;173;p4","text":"Keeping Walk Mode stable on a live phone feed - session-scoped tracking, corridor occupancy, persistence, hysteresis, and cooldowns stop a single noisy frame from flipping the guidance action.","textPreview":"Keeping Walk Mode stable on a live phone feed - session-scoped tracking, corridor occupancy, persistence, hysteresis, and cooldowns stop ...","textChars":192,"textLines":1,"bbox":[479.04,524.16,321.6,96]}
+{"kind":"shape","id":"sh/ahc76lwf","slide":4,"name":"Google Shape;174;p4","bbox":[846.72,439.68,375.36,201.6]}
+{"kind":"shape","id":"sh/07axw3ah","slide":4,"name":"Google Shape;175;p4","bbox":[873.6,464.64,38.4,38.4]}
+{"kind":"textbox","id":"sh/25sbml0j","slide":4,"name":"Google Shape;176;p4","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[873.6,465.6,38.4,38.4]}
+{"kind":"textbox","id":"sh/8jepojat","slide":4,"name":"Google Shape;177;p4","text":"HOW YOU KNOW IT WORKS","textPreview":"HOW YOU KNOW IT WORKS","textChars":21,"textLines":1,"bbox":[925.44,462.72,274.56,48]}
+{"kind":"textbox","id":"sh/9wnulkby","slide":4,"name":"Google Shape;178;p4","text":"128 backend automated tests, 34 Expo-harness tests and 3 dashboard tests validate the local detector, segmentation, OCR, VLM and hall analytics pipeline on the team's RTX 4060.","textPreview":"128 backend automated tests, 34 Expo-harness tests and 3 dashboard tests validate the local detector, segmentation, OCR, VLM and hall ana...","textChars":176,"textLines":1,"bbox":[873.6,524.16,321.6,96]}
+{"kind":"notes","id":"nt/jyx0ra1s","slide":4,"text":"Replace the placeholder flow with your real architecture diagram. Name real services and models, then answer the three questions."}
+{"kind":"slide","id":"sl/i107q5of","slide":5,"title":"RECURSION — EDITION II","textShapes":19}
+{"kind":"shape","id":"sh/nexsjq14","slide":5,"name":"Google Shape;184;p5","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/kz2hsrql","slide":5,"name":"Google Shape;185;p5","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/xorulsjq","slide":5,"name":"Google Shape;186;p5","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/bm50fulc","slide":5,"name":"Google Shape;187;p5","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/bex8bipw","slide":5,"name":"Google Shape;188;p5","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/be5wfm5w","slide":5,"name":"Google Shape;189;p5","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/za1gzyts","slide":5,"name":"Google Shape;190;p5","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/epgbelg3","slide":5,"name":"Google Shape;191;p5","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/gf2p8ze9","slide":5,"name":"Google Shape;192;p5","text":"FRAME 05 / 09","textPreview":"FRAME 05 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/5ovy1cry","slide":5,"name":"Google Shape;193;p5","text":"FEASIBILITY & SCOPE","textPreview":"FEASIBILITY & SCOPE","textChars":19,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/8zapcj6x","slide":5,"name":"Google Shape;194;p5","text":"a working slice with a known limit beats an over-promised demo","textPreview":"a working slice with a known limit beats an over-promised demo","textChars":62,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"shape","id":"sh/adcrqtkv","slide":5,"name":"Google Shape;195;p5","bbox":[57.6,209.28,574.08,207.36]}
+{"kind":"shape","id":"sh/up8ryt8b","slide":5,"name":"Google Shape;196;p5","bbox":[86.4,238.08,40.32,40.32]}
+{"kind":"textbox","id":"sh/9czq1kf6","slide":5,"name":"Google Shape;197;p5","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[86.4,239.04,40.32,40.32]}
+{"kind":"textbox","id":"sh/98vitgr6","slide":5,"name":"Google Shape;198;p5","text":"SCOPE","textPreview":"SCOPE","textChars":5,"textLines":1,"bbox":[144,241.92,458.88,34.56]}
+{"kind":"textbox","id":"sh/2h072143","slide":5,"name":"Google Shape;199;p5","text":"In: Indoor Hall Obstacle Course, full detection + guidance, OCR/VLM exploration, recurring hazards and route scoring.","textPreview":"In: Indoor Hall Obstacle Course, full detection + guidance, OCR/VLM exploration, recurring hazards and route scoring.","textChars":117,"textLines":1,"bbox":[86.4,303.36,516.48,32.64]}
+{"kind":"textbox","id":"sh/8325kje9","slide":5,"name":"Google Shape;200;p5","text":"Out: Outdoor roads, traffic hazards, autonomous navigation, emergency dispatch, facial recognition and cloud AI.","textPreview":"Out: Outdoor roads, traffic hazards, autonomous navigation, emergency dispatch, facial recognition and cloud AI.","textChars":112,"textLines":1,"bbox":[86.4,345.6,516.48,32.64]}
+{"kind":"shape","id":"sh/fu9ory5c","slide":5,"name":"Google Shape;201;p5","bbox":[684.48,209.28,574.08,207.36]}
+{"kind":"shape","id":"sh/lkvyt4ra","slide":5,"name":"Google Shape;202;p5","bbox":[713.28,238.08,40.32,40.32]}
+{"kind":"textbox","id":"sh/dwb6dkj2","slide":5,"name":"Google Shape;203;p5","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[713.28,239.04,40.32,40.32]}
+{"kind":"textbox","id":"sh/zqho36p0","slide":5,"name":"Google Shape;204;p5","text":"RUNNING COST","textPreview":"RUNNING COST","textChars":12,"textLines":1,"bbox":[770.88,241.92,458.88,34.56]}
+{"kind":"textbox","id":"sh/kridszyh","slide":5,"name":"Google Shape;205;p5","text":"$0 recurring - inference runs on the team's own RTX 4060 laptop over a private LAN; FastAPI + SQLite need no hosting, cloud API, or storage fees.","textPreview":"$0 recurring - inference runs on the team's own RTX 4060 laptop over a private LAN; FastAPI + SQLite need no hosting, cloud API, or stora...","textChars":145,"textLines":1,"bbox":[713.28,300.48,516.48,96.96]}
+{"kind":"shape","id":"sh/9kne1szi","slide":5,"name":"Google Shape;206;p5","bbox":[57.6,451.2,574.08,207.36]}
+{"kind":"shape","id":"sh/ozexgvi5","slide":5,"name":"Google Shape;207;p5","bbox":[86.4,480,40.32,40.32]}
+{"kind":"textbox","id":"sh/432hgni1","slide":5,"name":"Google Shape;208;p5","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[86.4,480.96,40.32,40.32]}
+{"kind":"textbox","id":"sh/zqdcf2pc","slide":5,"name":"Google Shape;209;p5","text":"RISKS & FALLBACK","textPreview":"RISKS & FALLBACK","textChars":16,"textLines":1,"bbox":[144,483.84,458.88,34.56]}
+{"kind":"textbox","id":"sh/u94jy98v","slide":5,"name":"Google Shape;210;p5","text":"Weak or contradictory visual evidence could mislead a user - the risk engine defaults to PAUSE_UNCLEAR instead of guessing. Fallback for any demo: keep phone and laptop on the same local Wi-Fi.","textPreview":"Weak or contradictory visual evidence could mislead a user - the risk engine defaults to PAUSE_UNCLEAR instead of guessing. Fallback for ...","textChars":193,"textLines":1,"bbox":[86.4,542.4,516.48,96.96]}
+{"kind":"shape","id":"sh/8fmd4729","slide":5,"name":"Google Shape;211;p5","bbox":[684.48,451.2,574.08,207.36]}
+{"kind":"shape","id":"sh/ydwba1oj","slide":5,"name":"Google Shape;212;p5","bbox":[713.28,480,40.32,40.32]}
+{"kind":"textbox","id":"sh/1s3u1s7a","slide":5,"name":"Google Shape;213;p5","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[713.28,480.96,40.32,40.32]}
+{"kind":"textbox","id":"sh/nipkf2tw","slide":5,"name":"Google Shape;214;p5","text":"IMPLEMENTED NOW","textPreview":"IMPLEMENTED NOW","textChars":15,"textLines":1,"bbox":[770.88,483.84,458.88,34.56]}
+{"kind":"textbox","id":"sh/1kzydsna","slide":5,"name":"Google Shape;215;p5","text":"Local VLM for on-demand questions, recurring-hazard consolidation and expiry, hall route scoring, and a local dashboard for course intelligence.","textPreview":"Local VLM for on-demand questions, recurring-hazard consolidation and expiry, hall route scoring, and a local dashboard for course intell...","textChars":144,"textLines":1,"bbox":[713.28,542.4,516.48,96.96]}
+{"kind":"notes","id":"nt/i107q5of","slide":5,"text":"Be honest about scope. A working slice with a known limit beats an over-promised demo."}
+{"kind":"slide","id":"sl/x8f69ofe","slide":6,"title":"RECURSION — EDITION II","textShapes":22}
+{"kind":"shape","id":"sh/p03at8jq","slide":6,"name":"Google Shape;221;p6","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/cb6l0jup","slide":6,"name":"Google Shape;222;p6","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/y1sbe1oj","slide":6,"name":"Google Shape;223;p6","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/l8jypszm","slide":6,"name":"Google Shape;224;p6","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/ds7at0b2","slide":6,"name":"Google Shape;225;p6","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/sfy1snid","slide":6,"name":"Google Shape;226;p6","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/fqx0fi5w","slide":6,"name":"Google Shape;227;p6","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/tg7a1gri","slide":6,"name":"Google Shape;228;p6","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/ryps3q5w","slide":6,"name":"Google Shape;229;p6","text":"FRAME 06 / 09","textPreview":"FRAME 06 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/9s7u9wru","slide":6,"name":"Google Shape;230;p6","text":"IMPACT METRICS","textPreview":"IMPACT METRICS","textChars":14,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/jalw3ehk","slide":6,"name":"Google Shape;231;p6","text":"show how the figure was measured, an estimate is fine","textPreview":"show how the figure was measured, an estimate is fine","textChars":53,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"textbox","id":"sh/z61sjud4","slide":6,"name":"Google Shape;232;p6","text":"99%","textPreview":"99%","textChars":3,"textLines":1,"bbox":[52.8,216,672,168]}
+{"kind":"textbox","id":"sh/d87i5gfm","slide":6,"name":"Google Shape;233;p6","text":"of controlled indoor test walks where a planted obstacle was flagged before the user reached it","textPreview":"of controlled indoor test walks where a planted obstacle was flagged before the user reached it","textChars":95,"textLines":1,"bbox":[59.52,401.28,633.6,28.8]}
+{"kind":"shape","id":"sh/hsfilo76","slide":6,"name":"Google Shape;234;p6","bbox":[57.6,458.88,648,174.72]}
+{"kind":"textbox","id":"sh/je18ba9s","slide":6,"name":"Google Shape;235;p6","text":"HOW IT WAS MEASURED","textPreview":"HOW IT WAS MEASURED","textChars":19,"textLines":1,"bbox":[91.2,487.68,384,23.04]}
+{"kind":"textbox","id":"sh/4n69crmx","slide":6,"name":"Google Shape;236;p6","text":"Estimated from repeated indoor test walks with a known obstacle placed in the corridor - a small controlled sample, not yet a statistically validated benchmark.","textPreview":"Estimated from repeated indoor test walks with a known obstacle placed in the corridor - a small controlled sample, not yet a statistical...","textChars":160,"textLines":1,"bbox":[91.2,518.4,580.8,96]}
+{"kind":"shape","id":"sh/4jmlcfep","slide":6,"name":"Google Shape;237;p6","bbox":[763.2,136.32,458.88,120.96]}
+{"kind":"shape","id":"sh/yxsn6p4z","slide":6,"name":"Google Shape;238;p6","bbox":[786.24,157.44,36.48,36.48]}
+{"kind":"textbox","id":"sh/gbyxovm1","slide":6,"name":"Google Shape;239;p6","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[786.24,158.4,36.48,36.48]}
+{"kind":"textbox","id":"sh/sn6lc3e5","slide":6,"name":"Google Shape;240;p6","text":"WHAT MEASURABLY IMPROVES","textPreview":"WHAT MEASURABLY IMPROVES","textChars":24,"textLines":1,"bbox":[836.16,153.6,362.88,48]}
+{"kind":"textbox","id":"sh/w7mlwbmh","slide":6,"name":"Google Shape;241;p6","text":"A user gets a spoken/haptic warning before reaching a visible obstacle, instead of relying on noticing it themselves.","textPreview":"A user gets a spoken/haptic warning before reaching a visible obstacle, instead of relying on noticing it themselves.","textChars":117,"textLines":1,"bbox":[786.24,209.28,412.8,42.24]}
+{"kind":"shape","id":"sh/1wrihova","slide":6,"name":"Google Shape;242;p6","bbox":[763.2,269.76,458.88,120.96]}
+{"kind":"shape","id":"sh/hsz6dcb2","slide":6,"name":"Google Shape;243;p6","bbox":[786.24,290.88,36.48,36.48]}
+{"kind":"textbox","id":"sh/mdo7694b","slide":6,"name":"Google Shape;244;p6","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[786.24,291.84,36.48,36.48]}
+{"kind":"textbox","id":"sh/adsvqho3","slide":6,"name":"Google Shape;245;p6","text":"WHO ELSE COULD USE IT","textPreview":"WHO ELSE COULD USE IT","textChars":21,"textLines":1,"bbox":[836.16,287.04,362.88,48]}
+{"kind":"textbox","id":"sh/fulc3ut8","slide":6,"name":"Google Shape;246;p6","text":"Campus accessibility & facilities teams, event organisers, and warehouse/industrial safety teams.","textPreview":"Campus accessibility & facilities teams, event organisers, and warehouse/industrial safety teams.","textChars":97,"textLines":1,"bbox":[786.24,342.72,412.8,42.24]}
+{"kind":"shape","id":"sh/bmdkbi94","slide":6,"name":"Google Shape;247;p6","bbox":[763.2,403.2,458.88,120.96]}
+{"kind":"shape","id":"sh/7uhwzedo","slide":6,"name":"Google Shape;248;p6","bbox":[786.24,424.32,36.48,36.48]}
+{"kind":"textbox","id":"sh/z61cj6hw","slide":6,"name":"Google Shape;249;p6","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[786.24,425.28,36.48,36.48]}
+{"kind":"textbox","id":"sh/j25gfe50","slide":6,"name":"Google Shape;250;p6","text":"WHAT COULD GO WRONG / BE MISUSED","textPreview":"WHAT COULD GO WRONG / BE MISUSED","textChars":32,"textLines":1,"bbox":[836.16,420.48,362.88,48]}
+{"kind":"textbox","id":"sh/3i9o7ahg","slide":6,"name":"Google Shape;251;p6","text":"A user could over-trust cautious guidance as a safety guarantee, or frequent warnings near normal furniture could cause alert fatigue and get ignored.","textPreview":"A user could over-trust cautious guidance as a safety guarantee, or frequent warnings near normal furniture could cause alert fatigue and...","textChars":150,"textLines":1,"bbox":[786.24,476.16,412.8,42.24]}
+{"kind":"shape","id":"sh/3edszydk","slide":6,"name":"Google Shape;252;p6","bbox":[763.2,536.64,458.88,120.96]}
+{"kind":"shape","id":"sh/jqtc3atc","slide":6,"name":"Google Shape;253;p6","bbox":[786.24,557.76,36.48,36.48]}
+{"kind":"textbox","id":"sh/hoj65wv2","slide":6,"name":"Google Shape;254;p6","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[786.24,558.72,36.48,36.48]}
+{"kind":"textbox","id":"sh/yxc7mdkn","slide":6,"name":"Google Shape;255;p6","text":"HOW YOU'D HANDLE THAT","textPreview":"HOW YOU'D HANDLE THAT","textChars":21,"textLines":1,"bbox":[836.16,553.92,362.88,48]}
+{"kind":"textbox","id":"sh/x0jm9kne","slide":6,"name":"Google Shape;256;p6","text":"PAUSE_UNCLEAR instead of guessing, hysteresis to cut noisy alerts, onboarding that DRISHTI assists, not replaces.","textPreview":"PAUSE_UNCLEAR instead of guessing, hysteresis to cut noisy alerts, onboarding that DRISHTI assists, not replaces.","textChars":113,"textLines":1,"bbox":[786.24,609.6,412.8,42.24]}
+{"kind":"notes","id":"nt/x8f69ofe","slide":6,"text":"Pick one primary metric. Show how it was measured — an estimate is fine if you show your working."}
+{"kind":"slide","id":"sl/gnmp4jqx","slide":7,"title":"RECURSION — EDITION II","textShapes":7}
+{"kind":"shape","id":"sh/i1ovmpw7","slide":7,"name":"Google Shape;262;p7","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/hsv61wr2","slide":7,"name":"Google Shape;263;p7","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/h8ju1c3a","slide":7,"name":"Google Shape;264;p7","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/vah8zqd4","slide":7,"name":"Google Shape;265;p7","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/5kvy1c7y","slide":7,"name":"Google Shape;266;p7","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/x87mpk72","slide":7,"name":"Google Shape;267;p7","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/fet836lo","slide":7,"name":"Google Shape;268;p7","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/y9kvqx8f","slide":7,"name":"Google Shape;269;p7","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/knm50rex","slide":7,"name":"Google Shape;270;p7","text":"FRAME 07 / 09","textPreview":"FRAME 07 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/lofy10v2","slide":7,"name":"Google Shape;271;p7","text":"REFERENCES & ATTRIBUTION","textPreview":"REFERENCES & ATTRIBUTION","textChars":24,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/dwvup4nm","slide":7,"name":"Google Shape;272;p7","text":"one source per line · uncredited work is disqualifying","textPreview":"one source per line · uncredited work is disqualifying","textChars":54,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"textbox","id":"sh/kfix8n6x","slide":7,"name":"Google Shape;273;p7","text":"TABLE 07-A — SOURCES & LICENCES","textPreview":"TABLE 07-A — SOURCES & LICENCES","textChars":31,"textLines":1,"bbox":[57.6,225.6,480,21.12]}
+{"kind":"shape","id":"sh/5sb6hgba","slide":7,"name":"Google Shape;274;p7","bbox":[66.24,260.16,1164.48,351.36]}
+{"kind":"table","id":"tb/o7mhsv6t","slide":7,"name":"Google Shape;275;p7","rows":6,"cols":5,"preview":"TYPE | SOURCE (AUTHOR, TITLE, YEAR) | WHAT IT GAVE YOU | BORROWED / YOURS | LICENCE","bbox":[57.6,251.52,314.96,314.96]}
+{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":"One source per line — papers, repos, docs, datasets, model weights. Uncredited work is disqualifying."}
+{"kind":"slide","id":"sl/fu1gfa1s","slide":8,"title":"RECURSION — EDITION II","textShapes":8}
+{"kind":"shape","id":"sh/dsz258ji","slide":8,"name":"Google Shape;281;p8","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/47elgzi9","slide":8,"name":"Google Shape;282;p8","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/mhkvi583","slide":8,"name":"Google Shape;283;p8","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/mxkzy18z","slide":8,"name":"Google Shape;284;p8","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/507m9ofu","slide":8,"name":"Google Shape;285;p8","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/c7ml4b2p","slide":8,"name":"Google Shape;286;p8","text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/ax0b2xwb","slide":8,"name":"Google Shape;287;p8","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/u9crahwr","slide":8,"name":"Google Shape;288;p8","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/xkzadorm","slide":8,"name":"Google Shape;289;p8","text":"FRAME 08 / 09","textPreview":"FRAME 08 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/psru58ry","slide":8,"name":"Google Shape;290;p8","text":"EXTRA SLIDE","textPreview":"EXTRA SLIDE","textChars":11,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"shape","id":"sh/ylcbapwn","slide":8,"name":"Google Shape;291;p8","bbox":[57.6,201.6,1164.48,441.6]}
+{"kind":"textbox","id":"sh/t0nux8rm","slide":8,"name":"Google Shape;292;p8","text":"FIG. 08-A - WALK MODE OVERLAY (LIVE INDOOR TEST RUN)","textPreview":"FIG. 08-A - WALK MODE OVERLAY (LIVE INDOOR TEST RUN)","textChars":52,"textLines":1,"bbox":[91.2,230.4,720,24.96]}
+{"kind":"shape","id":"sh/epsvqds7","slide":8,"name":"Google Shape;293;p8","bbox":[91.2,580.8,40.32,40.32]}
+{"kind":"shape","id":"sh/8ritsfa1","slide":8,"name":"Google Shape;294;p8","bbox":[111.36,580.8,0,40.32]}
+{"kind":"shape","id":"sh/47edg3u1","slide":8,"name":"Google Shape;295;p8","bbox":[111.36,600.96,20.16,0]}
+{"kind":"textbox","id":"sh/bulsnid0","slide":8,"name":"Google Shape;298;p8","text":"Code & demo: github.com/SparkleYR/DRISHTI","textPreview":"Code & demo: github.com/SparkleYR/DRISHTI","textChars":41,"textLines":1,"bbox":[818.9,230.4,403.18,24.96]}
+{"kind":"textbox","id":"sh/zap4nyx4","slide":8,"name":"Google Shape;300;p8","text":"A real screenshot from the indoor Hall Obstacle Course - not a mockup.\nYellow boxes: YOLO11n detects person, chair, bag and desk obstacles\nColoured overlay: SegFormer-B0 identifies walkable surface, walls and corridor clearance\nBottom panel: live telemetry shows frame timing, corridor score and the cautious guidance state\nOCR and the local VLM run only when the user explicitly enters Explore Mode\nShown as captured - including an uncertain frame - so the safety behaviour is honest, not cherry-picked.","textPreview":"A real screenshot from the indoor Hall Obstacle Course - not a mockup. | Yellow boxes: YOLO11n detects person, chair, bag and desk obstac...","textChars":504,"textLines":6,"bbox":[313.91,271.11,850.39,346.46]}
+{"kind":"image","id":"im/ylw3a9sf","slide":8,"name":"Walk Mode overlay screenshot","bbox":[91.2,271.11,198.52,346.46]}
+{"kind":"notes","id":"nt/fu1gfa1s","slide":8,"text":"Optional space: demo links, screenshots, GitHub, QR codes, anything extra that strengthens the submission. Delete the checklist sticker and the hint line once you're done."}
+{"kind":"slide","id":"sl/udsvah03","slide":9,"title":"RECURSION — EDITION II","textShapes":8}
+{"kind":"shape","id":"sh/9o7e1wby","slide":9,"name":"Google Shape;303;p9","bbox":[57.6,28.8,30.72,30.72]}
+{"kind":"shape","id":"sh/j650jm5c","slide":9,"name":"Google Shape;304;p9","bbox":[72.96,28.8,0,30.72]}
+{"kind":"shape","id":"sh/m98f69cf","slide":9,"name":"Google Shape;305;p9","bbox":[72.96,44.16,15.36,0]}
+{"kind":"textbox","id":"sh/5w3alovu","slide":9,"name":"Google Shape;306;p9","text":"RECURSION — EDITION II","textPreview":"RECURSION — EDITION II","textChars":22,"textLines":1,"bbox":[103.68,34.56,403.2,23.04]}
+{"kind":"shape","id":"sh/vq90bi10","slide":9,"name":"Google Shape;307;p9","bbox":[1152,24.96,65.28,65.28]}
+{"kind":"textbox","id":"sh/por2lw3a","slide":9,"name":"Google Shape;308;p9","text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1152,25.92,65.28,65.28]}
+{"kind":"shape","id":"sh/dojud832","slide":9,"name":"Google Shape;309;p9","bbox":[57.6,677.76,1164.77,0]}
+{"kind":"textbox","id":"sh/rmh0f2hg","slide":9,"name":"Google Shape;310;p9","text":"TECHNOVIT'S FLAGSHIP HACKATHON","textPreview":"TECHNOVIT'S FLAGSHIP HACKATHON","textChars":30,"textLines":1,"bbox":[57.6,687.36,480,21.12]}
+{"kind":"textbox","id":"sh/2lkn61gn","slide":9,"name":"Google Shape;311;p9","text":"FRAME 09 / 09","textPreview":"FRAME 09 / 09","textChars":13,"textLines":1,"bbox":[934.37,687.36,288,21.12]}
+{"kind":"textbox","id":"sh/jihgz2d0","slide":9,"name":"Google Shape;312;p9","text":"TEAM & CONTACT","textPreview":"TEAM & CONTACT","textChars":14,"textLines":1,"bbox":[57.6,97.92,1017.6,59.52]}
+{"kind":"textbox","id":"sh/0f6l8fap","slide":9,"name":"Google Shape;313;p9","text":"one line per member · so organisers can reach you after submission","textPreview":"one line per member · so organisers can reach you after submission","textChars":66,"textLines":1,"bbox":[57.6,163.2,1017.6,26.88]}
+{"kind":"textbox","id":"sh/q9wvuh83","slide":9,"name":"Google Shape;314;p9","text":"Hallucinators","textPreview":"Hallucinators","textChars":13,"textLines":1,"bbox":[57.6,197.76,768,38.4]}
+{"kind":"textbox","id":"sh/4jydw7mh","slide":9,"name":"Google Shape;315;p9","text":"TABLE 09-A — TEAM CONTACT SHEET","textPreview":"TABLE 09-A — TEAM CONTACT SHEET","textChars":31,"textLines":1,"bbox":[57.6,245.76,576,21.12]}
+{"kind":"shape","id":"sh/50bu5kry","slide":9,"name":"Google Shape;316;p9","bbox":[66.24,281.28,1164.48,330.24]}
+{"kind":"shape","id":"sh/qpgjulwz","slide":9,"name":"Google Shape;318;p9","bbox":[57.6,624,864,23.04]}
+{"kind":"shape","id":"sh/ipk7mdg7","slide":9,"name":"Google Shape;319;p9","bbox":[1152,616.32,38.4,38.4]}
+{"kind":"shape","id":"sh/fql47qhg","slide":9,"name":"Google Shape;320;p9","bbox":[1171.2,616.32,0,38.4]}
+{"kind":"shape","id":"sh/9crul47u","slide":9,"name":"Google Shape;321;p9","bbox":[1171.2,635.52,19.2,0]}
+{"kind":"table","id":"tb/pwbalcni","slide":9,"name":"Google Shape;317;p9","rows":4,"cols":3,"preview":"NAME | PHONE | EMAIL","bbox":[57.6,272.64,314.96,314.96]}
+{"kind":"notes","id":"nt/udsvah03","slide":9,"text":"List every member's phone and email so organisers and judges can follow up after the round. This slide is for the submission file — remove it if presenting live on stage."}

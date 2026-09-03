@@ -1,0 +1,14 @@
+{
+  "outputSlides": [
+    {"outputSlide": 1, "sourceSlide": 1, "narrativeRole": "cover", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "sh/qtk3mx07", "action": "rewrite"}, {"sourceElementId": "sh/1cbmtor6", "action": "rewrite"}]},
+    {"outputSlide": 2, "sourceSlide": 2, "narrativeRole": "problem", "reuseMode": "duplicate-slide", "editTargets": []},
+    {"outputSlide": 3, "sourceSlide": 3, "narrativeRole": "solution", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "sh/a9sj29gv", "action": "rewrite"}, {"sourceElementId": "sh/qtgjyhsf", "action": "rewrite"}]},
+    {"outputSlide": 4, "sourceSlide": 4, "narrativeRole": "architecture", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "sh/x4ripsny", "action": "rewrite"}, {"sourceElementId": "sh/qtsv69kj", "action": "rewrite"}, {"sourceElementId": "sh/zel0je1w", "action": "rewrite"}, {"sourceElementId": "sh/al4n2h0z", "action": "rewrite"}, {"sourceElementId": "sh/9wnulkby", "action": "rewrite"}]},
+    {"outputSlide": 5, "sourceSlide": 5, "narrativeRole": "scope", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "sh/2h072143", "action": "rewrite"}, {"sourceElementId": "sh/8325kje9", "action": "rewrite"}, {"sourceElementId": "sh/1kzydsna", "action": "rewrite"}]},
+    {"outputSlide": 6, "sourceSlide": 6, "narrativeRole": "impact", "reuseMode": "duplicate-slide", "editTargets": []},
+    {"outputSlide": 7, "sourceSlide": 7, "narrativeRole": "references", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "tb/o7mhsv6t", "action": "rewrite"}]},
+    {"outputSlide": 8, "sourceSlide": 8, "narrativeRole": "live demo", "reuseMode": "duplicate-slide", "editTargets": [{"sourceElementId": "sh/zap4nyx4", "action": "rewrite"}]},
+    {"outputSlide": 9, "sourceSlide": 9, "narrativeRole": "team contact", "reuseMode": "duplicate-slide", "editTargets": []}
+  ],
+  "omittedSourceSlides": []
+}

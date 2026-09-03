@@ -1,0 +1,1 @@
+"""Local persisted hazard workflow."""

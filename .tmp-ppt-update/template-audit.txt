@@ -1,0 +1,4 @@
+Source deck: 9-slide RECUSION Edition II idea submission deck.
+Visual contract: retain the cream/black/red identity, page markers, source layouts, font treatment, and original slide order.
+Requested revisions: targeted copy updates only; no new slide architecture or visual restyling.
+Edited themes: indoor hall obstacle course; local-only processing; optional local dashboard; implemented local VLM; removal of India-specific/outdoor wording.

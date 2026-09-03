@@ -1,0 +1,106 @@
+# DRISHTI Architecture Decisions
+
+## 1. Purpose
+
+This document records decisions confirmed during the initial repository audit. An accepted decision remains binding until the user approves a replacement. Material changes must be added here rather than made silently in code.
+
+## 2. Accepted decisions
+
+| ID | Decision | Status | Consequence |
+|---|---|---|---|
+| D-001 | Use `C:\Drishti AI` directly as the repository root. | Accepted | Do not create a nested `drishti` repository directory. |
+| D-002 | Use a monorepo with npm workspaces for mobile, dashboard, and shared TypeScript API contracts. | Accepted | One root lockfile coordinates the TypeScript projects. |
+| D-003 | Use React Native with Expo and TypeScript only as a bare-bones mobile testing harness in this workflow. | Superseded by D-026 and D-027 | Expo Go remains useful for local physical verification but is not the production mobile stack. |
+| D-004 | Use React with Vite and TypeScript for the AccessOps dashboard. | Accepted | The dashboard is a local static client; server-side rendering is unnecessary. |
+| D-005 | Use FastAPI and Pydantic for the local backend and typed API. | Accepted | FastAPI-generated OpenAPI must remain aligned with `API_CONTRACTS.md`. |
+| D-006 | Use SQLAlchemy 2 and Alembic with SQLite. | Accepted | Only the backend accesses `data/drishti.db`; schema changes use migrations. |
+| D-007 | Standardize backend development on Python 3.12. | Accepted | The currently installed Python 3.14 is not the target environment; Python 3.12 must be available before dependency installation. |
+| D-008 | Normal product runtime must work without internet. | Accepted | Development-time package and model downloads from standard sources are allowed. Runtime cloud calls are prohibited. |
+| D-009 | Use the local NVIDIA RTX 4060 Laptop GPU for inference acceleration. | Accepted | CUDA is the preferred device. Resource use must be profiled, and optional models cannot destabilize core inference. |
+| D-010 | Phases 0 through 6 define the core hackathon MVP. | Accepted | Phases 7 through 11 are optional expansions and require approval after the core loop is stable. |
+| D-011 | Reserve versioned normalized map coordinates now and defer the campus map graphic to Phase 6. | Accepted | Hazard contracts carry `map_id`, `map_version`, `x`, and `y`; no placeholder online map is permitted. |
+| D-012 | The phone is the sensor and accessible user interface; the laptop is the AI server and database host; the dashboard runs in the laptop browser. | Accepted | The system communicates only across a private local network. In this workflow, Expo substitutes only as a test client for the future native application. |
+| D-013 | The production native mobile app owns the live camera preview, AR rendering, speech, haptics, and stale-response rejection. | Accepted with scope clarification | The backend returns geometry and decisions, not rendered video. Expo implements only the minimum subset needed to validate those outputs during backend development. |
+| D-014 | Use normalized, orientation-corrected capture coordinates for all overlay geometry. | Accepted | The backend reverses inference letterboxing; mobile applies one tested capture-to-preview transform. |
+| D-015 | Use UTC RFC 3339 timestamps on the wire. | Accepted | Local time is a display concern; frame freshness comparisons use UTC timestamps and monotonic frame IDs. |
+| D-016 | Keep service health separate from model readiness. | Accepted | Phase 0 may have a healthy service and database while models remain unavailable and Walk Mode is disabled. |
+| D-017 | Use a versioned `/api/v1` contract with stable error codes. | Accepted | Breaking changes require an explicit contract-version decision and corresponding client/test updates. |
+| D-018 | The continuous Walk Loop uses specialized perception and deterministic risk logic only. | Accepted | LLMs, VLMs, OCR, RAG, and agent frameworks are prohibited in the continuous loop. |
+| D-019 | Explore processing is on-demand and isolated from Walk Mode. | Accepted | Optional OCR/VLM compute must not block or reduce the priority of safety processing. |
+| D-020 | Use one active request per mobile session and latest-frame-wins backend scheduling. | Accepted | No unbounded queue of stale frames is allowed. |
+| D-021 | Treat monocular depth as relative proximity only. | Accepted | Public contracts use proximity bands/scores and never promise exact metres or exact time to collision. |
+| D-022 | Store no continuous walking frames or video. | Accepted | Hazard evidence is local and opt-in per report; logs must not contain frame bytes. |
+| D-023 | Use polling every 1–3 seconds for the first dashboard synchronization loop. | Accepted | WebSockets and server-sent events are deferred until the complete local workflow is stable. |
+| D-024 | Work advances one dependency-ordered phase at a time through explicit review gates. | Accepted | A phase is complete only after its automated and required physical checks pass and the user approves it. |
+| D-025 | Phase 0 product-skeleton implementation passed its gate and is complete. | Accepted | The automated checks and physical Expo-to-backend LAN check passed, and the user approved completion. |
+| D-026 | Build the final production mobile application natively in Kotlin outside this workflow. | Accepted | Native Android product UI, accessibility behavior, lifecycle handling, performance hardening, and release packaging are not deliverables of this repository workflow. Backend contracts must remain suitable for a Kotlin client. |
+| D-027 | Maintain Expo strictly as a bare-bones physical backend test harness. | Accepted | Expo code is limited to the absolute minimum required to verify API responses, frame uploads, freshness behavior, and normalized AR coordinates for the active phase. Do not build polished UI or production mobile features in Expo. |
+| D-028 | Prioritize implementation effort in this workflow toward FastAPI, computer vision, deterministic spatial/risk processing, and SQLite persistence. | Accepted | Mobile test-harness work and dashboard UI work remain subordinate to backend verification needs; speculative client features are prohibited. |
+| D-029 | Phase 1 camera-to-backend vertical-slice passed its gate and is complete. | Accepted | Automated and local HTTP checks passed; the user confirmed the physical phone upload and coordinate test worked. |
+| D-030 | Use Ultralytics YOLO11n for the Phase 2 generic object detector under the AGPL-3.0 licensing path. | Accepted | The user explicitly accepted the AGPL consequence for this internal hackathon prototype. Any later distribution or proprietary use requires a fresh licensing review. |
+| D-031 | Use PyTorch 2.6.0 with torchvision 0.21.0 and CUDA 12.4 for the RTX 4060, plus `ultralytics-opencv-headless` 8.4.117; keep YOLO weights local. | Accepted | The pinned stack was verified against the local GPU. Model/package downloads are development-time actions only. Startup and inference must use the local model path with offline mode enabled and must never fetch weights at runtime. |
+| D-032 | Phase 2 exposes only filtered detection evidence, not inferred mobility risk. | Accepted | The canonical generic set is `person`, `chair`, `bag`, `bicycle`, `motorcycle`, `car`, `bus`, and `bench`; COCO bag variants map to `bag`. Accepted detections use `WATCH`/`YELLOW` placeholders while direction, proximity, approach, path overlap, and risk remain unknown or neutral until their owning phases. |
+| D-033 | Phase 2 object detection and basic live overlays passed their gate and are complete. | Accepted | Automated contract, CUDA, offline-runtime, model-failure, and Expo transform checks passed; the user confirmed the controlled physical detection and phone-box alignment behavior. |
+| D-034 | Use NVIDIA SegFormer-B0 fine-tuned on Cityscapes for Phase 3 semantic segmentation under its non-commercial research/evaluation terms. | Accepted | The user explicitly approved this path for the internal hackathon prototype. The model runs locally on CUDA; any commercial or production reuse requires a fresh licensing review. |
+| D-035 | Use session-scoped, label-aware IoU/centroid tracking and geometric relative-proximity fallback in Phase 3. | Accepted | Tracks never cross sessions or identify people. Relative proximity combines normalized box area and lower-edge position, and never claims metric distance. Monocular depth remains optional and reports a degraded model state while fallback evidence remains available. |
+| D-036 | Treat Phase 3 outputs as spatial evidence, not safety decisions. | Accepted | Segmentation maps `sidewalk` to `WALKABLE` and `road` to `ROAD`; tracking supplies motion/approach evidence and corridor analysis supplies occupancy/clearer-corridor evidence. `risk_score`, final display severity, speech, haptics, and actionable guidance remain neutral until Phase 4. |
+| D-037 | Pin the Phase 3 SegFormer integration to Transformers 4.57.6 and expose initial geometric/spatial thresholds through local configuration. | Accepted | Thresholds are unvalidated engineering defaults for controlled evaluation and may be tuned without changing the API contract. Model loading uses `local_files_only`, Hugging Face offline mode, and disabled telemetry. |
+| D-038 | Phase 3 segmentation, tracking, relative proximity, and corridor analysis passed their gate and are complete. | Accepted | Automated checks and the required controlled physical overlay/tracking checks passed; the user confirmed the Phase 3 behavior. |
+| D-039 | Use the blueprint's deterministic normalized risk formula with configurable class severities, explicit safety overrides, and a session-scoped alert state machine for Phase 4. | Accepted | The documented weights, two-frame non-critical persistence, three-frame clear hysteresis, three-second speech cooldown, and decision margin are initial unvalidated engineering defaults for controlled testing. Critical rules bypass persistence and cooldown. |
+| D-040 | Phase 4 risk engine and typed live AR guidance passed their gate and are complete. | Accepted | Automated decision, state-machine, contract, freshness, CUDA, and packaging checks passed; the user confirmed the controlled physical guidance loop. |
+| D-041 | Use a per-session latest-frame-wins scheduler with one active inference and at most one replaceable waiting frame. | Accepted | A newer waiting frame deterministically returns `FRAME_SUPERSEDED` to the displaced request. Active model work is allowed to finish because cancelling an in-flight CUDA operation is unsafe and unreliable. |
+| D-042 | Drive the Expo verification loop from completed requests with adaptive delay and capped exponential retry. | Accepted | The harness cannot overlap requests, reports connection loss once per incident, discards stale guidance, and resumes after recovery. Production Kotlin lifecycle and notification behavior remain outside this workflow. |
+| D-043 | Phase 5 continuous capture hardening passed its gate and is complete. | Accepted | Automated scheduling, freshness, packaging, and offline CUDA checks passed; the user confirmed the controlled physical interruption-and-recovery behavior. |
+| D-044 | Keep Phase 6 map rendering asset-neutral until the real campus graphic is supplied. | Accepted | The dashboard plots versioned normalized coordinates on a local reference plane. `phase6-test-map` version `1` at the centre is a harness-only test coordinate, not an official campus map identity or geography. |
+| D-045 | Keep Phase 6 duplicate consolidation operator-controlled through the frozen merge endpoint. | Accepted | Automatic spatial/time-window duplicate merging remains Phase 10 work. Explicit merges retain source observation IDs, status history, and optimistic version checks in one local transaction. |
+| D-046 | Store optional Phase 6 evidence as a locally generated JPEG filename only after explicit request consent. | Accepted | Reports contain no user identity; filenames do not reuse client input, evidence is never stored when consent is false, and no evidence bytes are returned by the frozen Phase 6 API. |
+| D-047 | Phases 0 through 6, the core hackathon MVP, passed their gates and are complete. | Accepted | The user confirmed the Phase 6 physical phone-to-dashboard reporting and resolution-sync workflow; optional expansion work may now proceed one approved phase at a time. |
+| D-048 | Use Tesseract 5 through `pytesseract` for Phase 7 OCR, CPU-only with one independently bounded on-demand worker. | Accepted | OCR never runs in the continuous Walk Loop, never consumes CUDA, and cannot queue without bound or block Walk Mode. Phase 7 supports English `eng`; additional OCR languages require separately installed local language data and approval. |
+| D-049 | Add the typed `POST /api/v1/explore` contract for one-shot `READ_TEXT` requests. | Accepted | The response returns extracted text, probable route numbers, normalized confidence, explicit `HIGH`/`LOW`/`NONE` qualification, a safe message, no-text state, and decode/OCR/total timings. `DESCRIBE_FOCUSED` and `QUESTION` remain unimplemented. |
+| D-050 | Tune the Expo Walk test upload for the measured private-LAN path: 640-pixel JPEG at quality 0.5, a 30-second diagnostic request timeout, and a 3000 ms result-freshness limit. | Accepted | The previous 1280-pixel upload and 1000 ms freshness limit discarded results after measured local inference already exceeded one second, while the 12-second client cancellation could hide the underlying upload failure. This is test-harness tuning only; the future Kotlin client requires independent measured latency targets. |
+| D-051 | Use the Expo File System `File` implementation for test-harness multipart image parts. | Accepted | Expo SDK 57's fetch implementation rejects React Native's legacy `{ uri, name, type }` multipart object with `Unsupported FormDataPart implementation`. Both Walk and Explore now append the supported local `File`/Blob implementation; this does not alter the backend API contract. |
+| D-052 | Phase 7 Explore Mode and OCR passed its gate and is complete. | Accepted | One-shot local OCR remains isolated from Walk Mode; Phase 8 may proceed under its separately approved scope. |
+| D-053 | Re-scope Phase 8 from outdoor India-specific hazards to the available indoor Indian campus hall obstacle course. | Accepted | Enable desk/table mapping and wall/dead-end awareness. Reuse the approved generic YOLO11n and SegFormer-B0 models; do not add potholes, open drains, waterlogging, outdoor datasets, floor cables, or a new model family without separate approval and physical evidence. |
+| D-054 | Derive wall/dead-end evidence from confident SegFormer `wall` pixels spanning all three forward corridors. | Accepted | A centre or side wall alone remains spatial evidence; only configurable left, centre, and right coverage can trigger `WALL_OR_DEAD_END_AHEAD`. Segmentation failure degrades this feature but leaves generic Walk Mode operational. |
+| D-055 | Phase 8 indoor hall expansion passed its gate and is complete. | Accepted | The user confirmed the controlled hall behavior works as intended; no unsupported outdoor or floor-cable class was introduced. |
+| D-056 | Omit Phase 9 and proceed directly to Phase 10. | Accepted | No local VLM, prompt endpoint, VLM dependency, or GPU competition is needed for the indoor hackathon demonstration. |
+| D-057 | Model the Phase 10 demonstration as a versioned normalized `Hall Obstacle Course`, not as GPS or camera-derived indoor localization. | Accepted | Route coordinates are explicit local reference data. The system must not claim that the camera automatically knows its map position or that the score certifies safe travel. |
+| D-058 | Automatically consolidate only active reports with the same canonical category, map ID, map version, configured time window, and configured normalized radius. | Accepted | Candidate selection is deterministic by distance, first-seen time, then ID. Every report remains an observation; different maps, versions, categories, and distant locations stay separate. |
+| D-059 | Apply category-aware expiry to temporary indoor hazards and exclude inactive records from scores. | Accepted | People expire faster than movable furniture unless reconfirmed. Expiry is recorded as a local `RESOLVED` history transition by `system-expiry`; resolved, rejected, expired, and merged hazards contribute no active penalty. |
+| D-060 | Keep accessibility scoring explainable and separate from immediate mobility guidance. | Accepted | Scores expose per-hazard severity, verification status, recurrence, confidence, freshness, spatial influence, and penalty. They support judge demonstration and facilities prioritization only; Walk Mode continues to use current perception and deterministic risk rules even if SQLite or the dashboard fails. |
+
+## 3. Safety and privacy decisions
+
+- DRISHTI is an assistive prototype and does not replace established mobility aids or human judgment.
+- The system may warn that vehicles are approaching; it must never claim that crossing is safe.
+- When evidence is weak or alternatives are unclear, prefer `STOP` or `PAUSE_UNCLEAR` over precise movement advice.
+- Color is never the sole signal; significant states also use an icon, label, speech, or haptic pattern.
+- No facial recognition, identity tracking, continuous recording, or personal route-history collection is permitted.
+- Hazard reports are anonymous by default. A local operator alias may be recorded for dashboard status changes.
+- Physical testing uses controlled environments and must never involve unsafe blindfolded walking.
+
+## 4. Contract clarifications resolved by this control set
+
+- `ACTIVE` is an API filter alias, not a stored hazard status. It represents `NEW`, `VERIFIED`, `ASSIGNED`, and `IN_PROGRESS`.
+- Hazard status history includes the operator alias omitted from the blueprint's illustrative table.
+- Returned overlay geometry refers to the full orientation-corrected capture before preview cropping, not to the model's letterboxed tensor.
+- Phase 0 health does not pretend unavailable models are ready.
+- Unit and integration tests are added with each phase; Phase 11 expands and hardens coverage rather than introducing testing for the first time.
+- Windows receives a PowerShell start workflow. A shell equivalent may be added for portability, but it is not the only supported script.
+- The first complete mobility vertical slice spans Phases 0 through 4. Optional, reporting, OCR, and custom-model work must not distract from that slice.
+- The Expo project is disposable as a production client: it verifies the mobile-facing contracts but must not become a second product implementation alongside Kotlin.
+- Phase acceptance may use raw or minimally formatted Expo output when it proves the required backend behavior and physical coordinate alignment.
+
+## 5. Deferred implementation selections
+
+These are intentionally unresolved and must be decided in their owning phase using measured evidence:
+
+- Exact minimal Expo camera capture method after Phase 1 preview-continuity testing; this choice does not constrain the future Kotlin implementation
+- Exact optional monocular-depth model and inference cadence; Phase 3 uses the approved geometric fallback
+- Initial thresholds, class severities, cooldowns, and freshness limits
+- Exact Android test handset and its Expo preview-transform behavior; production Kotlin transforms require separate native validation outside this workflow
+- Initial spoken/OCR languages beyond contract support for a BCP 47 preference
+- Campus map image, `map_id`, and first `map_version`
+- Additional India-specific or indoor custom labels, datasets, and acceptance thresholds beyond the approved Phase 8 hall scope
+
+No deferred selection authorizes speculative scaffolding in an earlier phase.

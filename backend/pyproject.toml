@@ -1,0 +1,13 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "real_model: requires local YOLO11n and SegFormer weights plus CUDA",
+    "real_ocr: requires the approved local Tesseract 5 runtime",
+]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
