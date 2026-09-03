@@ -52,6 +52,74 @@ import java.util.concurrent.atomic.AtomicInteger
  * response freshness, and fan-out to speech / haptics / spatial audio / overlay.
  * Lives in [WalkForegroundService]; the Activity observes [state].
  */
+private val LOCATE_LEAD_STOPWORDS =
+    setOf(
+        "me", "the", "a", "an", "my", "to", "for", "of", "out", "that", "this",
+        "some", "any", "it", "them", "one", "there", "something", "anything", "us",
+    )
+
+private val LOCATE_QUESTION_STARTS =
+    listOf("what", "whats", "what's", "how", "why", "who", "is", "are", "do", "does", "can")
+
+private val LOCATE_TRAILING_CLAUSE =
+    Regex("""\s+(which|that|i had|i have|from earlier|earlier|before)\b.*""", RegexOption.IGNORE_CASE)
+
+/**
+ * Pure routing helper for the "Ask" gesture: is a spoken phrase an
+ * "Ask -> Lock" target, and if so what is the cleaned target name?
+ *
+ * The locate keyword may sit anywhere in the phrase. Text after it is the
+ * target ("can you locate me the blue bucket which I had" -> "blue bucket");
+ * for verb-final languages (Hindi/Tamil) text *before* a trailing keyword is
+ * used instead. Leading filler and "... which I had" tails are stripped.
+ * Returns null for plain scene questions so the caller falls back to Scene Mode.
+ *
+ * @param markers lower-cased keyword list (trailing spaces tolerated).
+ */
+fun parseLocateTarget(heard: String?, markers: List<String>): String? {
+    val raw = heard?.trim().orEmpty()
+    if (raw.isEmpty()) return null
+    val lower = raw.lowercase()
+
+    var best = -1
+    var markerLen = 0
+    for (marker in markers.map { it.trim().lowercase() }) {
+        if (marker.isEmpty()) continue
+        var from = 0
+        while (true) {
+            val at = lower.indexOf(marker, from)
+            if (at < 0) break
+            val end = at + marker.length
+            val leftOk = at == 0 || !lower[at - 1].isLetter()
+            val rightOk = end >= lower.length || !lower[end].isLetter()
+            if (leftOk && rightOk && (best < 0 || at < best)) {
+                best = at
+                markerLen = marker.length
+            }
+            from = at + 1
+        }
+    }
+    if (best < 0) return null
+
+    val after = raw.substring(best + markerLen).trim()
+    val before = raw.substring(0, best).trim()
+    val words = (if (after.isNotEmpty()) after else before)
+        .split(Regex("\\s+"))
+        .toMutableList()
+    while (words.isNotEmpty() &&
+        words.first().lowercase().trim('?', '.', '!', ',') in LOCATE_LEAD_STOPWORDS
+    ) {
+        words.removeAt(0)
+    }
+    var target = LOCATE_TRAILING_CLAUSE.replace(words.joinToString(" "), "")
+        .trim()
+        .trimEnd('?', '.', '!', ',')
+    if (target.isBlank()) return null
+    val tl = target.lowercase()
+    if (LOCATE_QUESTION_STARTS.any { tl == it || tl.startsWith("$it ") }) return null
+    return target.take(80)
+}
+
 class WalkController(
     context: Context,
     private val api: DrishtiApi,
@@ -470,21 +538,18 @@ class WalkController(
     }
 
     /**
-     * Strip a leading locate keyword and return the target name, or null when
-     * the phrase is a plain scene question. Case-insensitive; trailing "?" and
-     * "." are dropped from the name.
+     * Decide whether a spoken phrase is an "Ask -> Lock" target and, if so,
+     * return a cleaned target name.
+     *
+     * The locate keyword ("find", "locate", "where is", ...) may sit anywhere in
+     * the phrase, not just at the start, so conversational wording works:
+     * "can you locate me the blue bucket which I had" -> "blue bucket". Text
+     * after the keyword is the target (text before it, for verb-final languages
+     * like Hindi/Tamil); leading filler words and trailing "... which I had"
+     * clauses are stripped. Returns null for plain scene questions.
      */
-    private fun extractLocateTarget(heard: String?): String? {
-        val raw = heard?.trim().orEmpty()
-        if (raw.isEmpty()) return null
-        val lower = raw.lowercase()
-        for (prefix in strings.locatePrefixes()) {
-            if (prefix.isNotBlank() && lower.startsWith(prefix)) {
-                return raw.substring(prefix.length).trim().trimEnd('?', '.', '!').ifBlank { null }
-            }
-        }
-        return null
-    }
+    private fun extractLocateTarget(heard: String?): String? =
+        parseLocateTarget(heard, strings.locatePrefixes())
 
     fun armHazard() {
         if (_state.value.mode != WalkMode.WALKING) return

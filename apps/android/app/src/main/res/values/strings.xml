@@ -117,8 +117,12 @@
     <string-array name="locate_prefixes">
         <item>"find "</item>
         <item>"locate "</item>
+        <item>"look for "</item>
+        <item>"search for "</item>
+        <item>"point me to "</item>
         <item>"where is "</item>
         <item>"where\'s "</item>
+        <item>"wheres "</item>
         <item>"take me to "</item>
         <item>"guide me to "</item>
         <item>"go to "</item>
