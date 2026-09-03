@@ -74,6 +74,9 @@ class Settings(BaseSettings):
     track_iou_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     track_centre_distance_threshold: float = Field(default=0.12, gt=0.0, le=1.0)
     track_max_age_frames: int = Field(default=3, ge=1, le=30)
+    target_tracking_confidence_threshold: float = Field(
+        default=0.25, ge=0.0, le=1.0
+    )
     approach_change_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
     proximity_area_weight: float = Field(default=0.55, ge=0.0, le=1.0)
     proximity_area_scale: float = Field(default=0.50, gt=0.0, le=1.0)

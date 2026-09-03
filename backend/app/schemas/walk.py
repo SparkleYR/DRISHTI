@@ -131,6 +131,20 @@ class HapticPattern(StrEnum):
     UNCLEAR_LONG = "UNCLEAR_LONG"
 
 
+class TargetTrackingState(StrEnum):
+    IDLE = "IDLE"
+    LOCATING = "LOCATING"
+    LOCKED_TRACKING = "LOCKED_TRACKING"
+    TARGET_LOST = "TARGET_LOST"
+
+
+class TargetHapticPattern(StrEnum):
+    NONE = "NONE"
+    TARGET_LEFT_PULSE = "TARGET_LEFT_PULSE"
+    TARGET_CENTRE_PULSE = "TARGET_CENTRE_PULSE"
+    TARGET_RIGHT_PULSE = "TARGET_RIGHT_PULSE"
+
+
 class NormalizedPoint(ApiModel):
     x: Normalized
     y: Normalized
@@ -220,6 +234,25 @@ class GuidanceContract(ApiModel):
     reason_code: str
 
 
+class TargetTrackingTelemetry(ApiModel):
+    tracking_state: TargetTrackingState
+    target_name: str | None = None
+    clock_direction: str | None = None
+    target_center: NormalizedPoint | None = None
+    confidence: Normalized | None = None
+    is_safety_overridden: bool = False
+    speech: str = ""
+    speak: bool = False
+    haptic_pattern: TargetHapticPattern = TargetHapticPattern.NONE
+
+
+class TargetTelemetryEvent(TargetTrackingTelemetry):
+    schema_version: Literal["1.0.0"] = SCHEMA_VERSION
+    server_time: datetime
+    session_id: str
+    frame_id: Annotated[int, Field(ge=0)]
+
+
 class StageTimings(ApiModel):
     decode_ms: NonNegativeMilliseconds
     detection_ms: NonNegativeMilliseconds | None = None
@@ -245,5 +278,6 @@ class FrameAnalysisResponse(ApiModel):
     corridors: CorridorCosts
     overlay: OverlayContract
     guidance: GuidanceContract
+    target_tracking: TargetTrackingTelemetry
     timings: StageTimings
     degraded_modules: list[str]

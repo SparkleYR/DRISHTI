@@ -186,6 +186,37 @@ export interface GuidanceContract {
   reason_code: string;
 }
 
+export type TargetTrackingState =
+  | "IDLE"
+  | "LOCATING"
+  | "LOCKED_TRACKING"
+  | "TARGET_LOST";
+
+export type TargetHapticPattern =
+  | "NONE"
+  | "TARGET_LEFT_PULSE"
+  | "TARGET_CENTRE_PULSE"
+  | "TARGET_RIGHT_PULSE";
+
+export interface TargetTrackingTelemetry {
+  tracking_state: TargetTrackingState;
+  target_name: string | null;
+  clock_direction: string | null;
+  target_center: NormalizedPoint | null;
+  confidence: number | null;
+  is_safety_overridden: boolean;
+  speech: string;
+  speak: boolean;
+  haptic_pattern: TargetHapticPattern;
+}
+
+export interface TargetTelemetryEvent extends TargetTrackingTelemetry {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  session_id: OpaqueId;
+  frame_id: number;
+}
+
 export interface StageTimings {
   decode_ms: number;
   detection_ms?: number | null;
@@ -211,6 +242,7 @@ export interface FrameAnalysisResponse {
   corridors: CorridorCosts;
   overlay: OverlayContract;
   guidance: GuidanceContract;
+  target_tracking: TargetTrackingTelemetry;
   timings: StageTimings;
   degraded_modules: string[];
 }
@@ -438,4 +470,46 @@ export interface ReadTextResponse {
   message: string;
   no_text_found: boolean;
   timings: ExploreTimings;
+}
+
+export interface VLMTimings {
+  decode_ms: number;
+  load_ms: number;
+  inference_ms: number;
+  unload_ms: number;
+  total_ms: number;
+}
+
+export interface VLMQueryResponse {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  model: "moondream2";
+  text: string;
+  timings: VLMTimings;
+}
+
+export interface VLMTargetBox {
+  x_min: number;
+  y_min: number;
+  x_max: number;
+  y_max: number;
+}
+
+export interface VLMLocatedTarget {
+  label: string;
+  confidence: number | null;
+  box: VLMTargetBox;
+  point: NormalizedPoint;
+}
+
+export interface VLMLocateResponse {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  model: "moondream2";
+  text: string;
+  target: VLMLocatedTarget;
+  clock_direction: string;
+  tracking_allowed: boolean;
+  source_frame_id: number | null;
+  timings: VLMTimings;
 }

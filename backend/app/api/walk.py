@@ -4,7 +4,8 @@ from datetime import UTC, datetime, timedelta
 from time import perf_counter
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, File, Form, Request, UploadFile, WebSocket
+from starlette.websockets import WebSocketDisconnect
 from starlette.concurrency import run_in_threadpool
 
 from app.config import Settings
@@ -15,10 +16,14 @@ from app.guidance.overlay_contract import build_overlay
 from app.perception.detector import Detector
 from app.perception.segmenter import SegmentationFrame, Segmenter
 from app.perception.tracking import TrackingSessionStore
+from app.perception.target_tracking import TargetTrackingSessionStore
+from app.risk.priority import safety_preempts_target_guidance
 from app.risk.rules import select_action
 from app.risk.scoring import RiskAssessment, score_tracks
 from app.risk.state_machine import RiskSessionStore
 from app.scheduling.latest_frame import LatestFrameScheduler
+from app.scheduling.frame_memory import LatestFrameMemory
+from app.scheduling.telemetry import LatestTelemetryHub
 from app.schemas.common import utc_now
 from app.schemas.walk import (
     DetectionResult,
@@ -34,6 +39,7 @@ from app.schemas.walk import (
     StageTimings,
     StartWalkSessionRequest,
     StartWalkSessionResponse,
+    TargetTelemetryEvent,
 )
 from app.spatial.corridor import analyze_corridors
 from app.spatial.surfaces import extract_surface_regions
@@ -56,6 +62,10 @@ def start_walk_session(
     tracking_sessions.start_session(session.session_id)
     risk_sessions: RiskSessionStore = request.app.state.risk_sessions
     risk_sessions.start_session(session.session_id)
+    target_sessions: TargetTrackingSessionStore = (
+        request.app.state.target_tracking_sessions
+    )
+    target_sessions.start_session(session.session_id)
     return StartWalkSessionResponse(
         server_time=now,
         session_id=session.session_id,
@@ -80,12 +90,44 @@ async def end_walk_session(session_id: str, request: Request) -> EndWalkSessionR
     tracking_sessions.end_session(session_id)
     risk_sessions: RiskSessionStore = request.app.state.risk_sessions
     risk_sessions.end_session(session_id)
+    target_sessions: TargetTrackingSessionStore = (
+        request.app.state.target_tracking_sessions
+    )
+    target_sessions.end_session(session_id)
+    frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
+    frame_memory.end_session(session_id)
+    telemetry_hub: LatestTelemetryHub = request.app.state.target_telemetry_hub
+    await telemetry_hub.end_session(session_id)
     assert session.ended_at is not None
     return EndWalkSessionResponse(
         server_time=now,
         session_id=session.session_id,
         ended_at=session.ended_at,
     )
+
+
+@router.websocket("/sessions/{session_id}/telemetry")
+async def target_telemetry(session_id: str, websocket: WebSocket) -> None:
+    try:
+        websocket.app.state.walk_sessions.require_active(session_id)
+    except AppError as exc:
+        await websocket.close(code=4404 if exc.status_code == 404 else 4409)
+        return
+
+    hub: LatestTelemetryHub = websocket.app.state.target_telemetry_hub
+    queue = await hub.subscribe(session_id)
+    await websocket.accept()
+    try:
+        while True:
+            event = await queue.get()
+            if event is None:
+                await websocket.close(code=1000)
+                return
+            await websocket.send_json(event.model_dump(mode="json"))
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await hub.unsubscribe(session_id, queue)
 
 
 @router.post("/analyze", response_model=FrameAnalysisResponse)
@@ -205,6 +247,13 @@ async def _process_accepted_frame(
         max_image_pixels=settings.max_image_pixels,
     )
     decode_ms = (perf_counter() - decode_started) * 1000
+    frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
+    frame_memory.store(
+        session_id,
+        frame_id,
+        frame_bytes,
+        rotation_degrees,
+    )
     del frame_bytes
 
     detection_started = perf_counter()
@@ -240,6 +289,10 @@ async def _process_accepted_frame(
         frame_id=frame_id,
         captured_at=captured_at,
     )
+    target_sessions: TargetTrackingSessionStore = (
+        request.app.state.target_tracking_sessions
+    )
+    target_sessions.update(session_id, decoded.image)
     tracking_depth_ms = (perf_counter() - tracking_started) * 1000
 
     spatial_started = perf_counter()
@@ -277,6 +330,11 @@ async def _process_accepted_frame(
         and session_settings.haptics_enabled is False
     )
     guidance = build_guidance(decision, haptics_enabled=haptics_enabled)
+    target_tracking = target_sessions.telemetry(
+        session_id,
+        is_safety_overridden=safety_preempts_target_guidance(decision),
+        haptics_enabled=haptics_enabled,
+    )
     overlay = build_overlay(
         decision,
         corridor,
@@ -294,7 +352,7 @@ async def _process_accepted_frame(
     degraded_modules = ["depth"]
     if segmentation_failed:
         degraded_modules[0:0] = ["segmentation", "india_hazards"]
-    return FrameAnalysisResponse(
+    response = FrameAnalysisResponse(
         server_time=processed_at,
         session_id=session_id,
         frame_id=frame_id,
@@ -312,6 +370,7 @@ async def _process_accepted_frame(
         corridors=corridor.costs,
         overlay=overlay,
         guidance=guidance,
+        target_tracking=target_tracking,
         timings=StageTimings(
             decode_ms=decode_ms,
             detection_ms=detection_ms,
@@ -323,6 +382,16 @@ async def _process_accepted_frame(
         ),
         degraded_modules=degraded_modules,
     )
+    telemetry_hub: LatestTelemetryHub = request.app.state.target_telemetry_hub
+    await telemetry_hub.publish(
+        TargetTelemetryEvent(
+            server_time=processed_at,
+            session_id=session_id,
+            frame_id=frame_id,
+            **target_tracking.model_dump(),
+        )
+    )
+    return response
 
 
 def _to_contract_detection(

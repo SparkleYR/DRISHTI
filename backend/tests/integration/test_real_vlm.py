@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import io
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -43,27 +45,81 @@ def test_real_moondream_runs_offline_and_releases_cuda_for_walk(
     )
     vlm = load_vlm_engine(settings)
     assert vlm.ready, vlm.detail
+    locate_started = threading.Event()
+
+    class SignallingVLM:
+        @property
+        def ready(self):
+            return vlm.ready
+
+        @property
+        def detail(self):
+            return vlm.detail
+
+        def query(self, image, prompt):
+            return vlm.query(image, prompt)
+
+        def locate(self, image, target_name):
+            locate_started.set()
+            return vlm.locate(image, target_name)
+
+        def unload(self):
+            return vlm.unload()
 
     app = create_app(
         settings,
         ocr_override=ReadyTestOCR(),
-        vlm_override=vlm,
+        vlm_override=SignallingVLM(),
     )
     Base.metadata.create_all(app.state.database_engine)
     fixture = FIXTURE_PATH.read_bytes()
-    with TestClient(app) as client:
+    with TestClient(app) as client, ThreadPoolExecutor(max_workers=1) as pool:
         response = client.post(
             "/api/v1/vlm/query",
             data={"prompt": "What large vehicle is visible in this image?"},
             files={"frame": ("bus.jpg", io.BytesIO(fixture), "image/jpeg")},
         )
-        health = client.get("/api/v1/health")
         walk_session = client.post("/api/v1/walk/sessions", json={}).json()
-        walk = client.post(
+        before_locate = client.post(
             "/api/v1/walk/analyze",
             data={
                 "session_id": walk_session["session_id"],
                 "frame_id": "0",
+                "captured_at": datetime.now(UTC).isoformat(),
+                "rotation_degrees": "0",
+            },
+            files={
+                "frame": ("walk.jpg", io.BytesIO(fixture), "image/jpeg")
+            },
+        )
+        locate_future = pool.submit(
+            client.post,
+            "/api/v1/vlm/locate",
+            params={
+                "target_name": "bus",
+                "session_id": walk_session["session_id"],
+            },
+        )
+        assert locate_started.wait(timeout=5)
+        during_locate = client.post(
+            "/api/v1/walk/analyze",
+            data={
+                "session_id": walk_session["session_id"],
+                "frame_id": "1",
+                "captured_at": datetime.now(UTC).isoformat(),
+                "rotation_degrees": "0",
+            },
+            files={
+                "frame": ("walk.jpg", io.BytesIO(fixture), "image/jpeg")
+            },
+        )
+        locate = locate_future.result(timeout=60)
+        health = client.get("/api/v1/health")
+        walk = client.post(
+            "/api/v1/walk/analyze",
+            data={
+                "session_id": walk_session["session_id"],
+                "frame_id": "2",
                 "captured_at": datetime.now(UTC).isoformat(),
                 "rotation_degrees": "0",
             },
@@ -77,7 +133,19 @@ def test_real_moondream_runs_offline_and_releases_cuda_for_walk(
     assert response.json()["timings"]["load_ms"] > 0
     assert response.json()["timings"]["inference_ms"] > 0
     assert response.json()["timings"]["unload_ms"] >= 0
+    assert before_locate.status_code == 200, before_locate.text
+    assert during_locate.status_code == 200, during_locate.text
+    assert during_locate.json()["target_tracking"]["tracking_state"] == "LOCATING"
+    assert locate.status_code == 200, locate.text
+    assert locate.json()["target"]["box"]
+    assert locate.json()["tracking_allowed"] is True
+    assert locate.json()["source_frame_id"] == 0
+    assert locate.json()["timings"]["unload_ms"] >= 0
     assert health.json()["models"]["vlm"]["status"] == "READY"
     assert health.json()["walk_mode_available"] is True
     assert walk.status_code == 200, walk.text
     assert walk.json()["detections"]
+    assert walk.json()["target_tracking"]["tracking_state"] in {
+        "LOCKED_TRACKING",
+        "TARGET_LOST",
+    }

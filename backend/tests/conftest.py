@@ -14,7 +14,7 @@ from app.config import Settings
 from app.db.models import Base
 from app.main import create_app
 from app.explore.ocr import OCRResult
-from app.explore.local_vlm import VLMResult
+from app.explore.local_vlm import VLMLocationResult, VLMResult
 from app.perception.detector import DetectionCandidate
 from app.perception.segmenter import SegmentationFrame
 
@@ -91,6 +91,17 @@ class ReadyTestVLM:
         self.call_count += 1
         return VLMResult(
             text=self.text,
+            load_ms=1.0,
+            inference_ms=2.0,
+            unload_ms=0.5,
+        )
+
+    def locate(self, _image: np.ndarray, _target_name: str) -> VLMLocationResult:
+        self.call_count += 1
+        return VLMLocationResult(
+            box=(0.20, 0.30, 0.50, 0.80),
+            point=(0.35, 0.55),
+            confidence=None,
             load_ms=1.0,
             inference_ms=2.0,
             unload_ms=0.5,

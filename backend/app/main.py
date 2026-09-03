@@ -31,9 +31,12 @@ from app.explore.vlm_executor import VLMExecutor
 from app.perception.detector import Detector, UnavailableDetector, load_detector
 from app.perception.segmenter import Segmenter, UnavailableSegmenter, load_segmenter
 from app.perception.tracking import TrackingSessionStore
+from app.perception.target_tracking import TargetTrackingSessionStore
 from app.request_limits import AnalyzeBodyLimitMiddleware
 from app.risk.state_machine import RiskSessionStore
 from app.scheduling.latest_frame import LatestFrameScheduler
+from app.scheduling.frame_memory import LatestFrameMemory
+from app.scheduling.telemetry import LatestTelemetryHub
 from app.schemas.walk import FrameAnalysisResponse
 from app.walk_sessions import WalkSessionStore
 
@@ -108,8 +111,13 @@ def create_app(
         centre_distance_threshold=settings.track_centre_distance_threshold,
         max_age_frames=settings.track_max_age_frames,
     )
+    app.state.target_tracking_sessions = TargetTrackingSessionStore(
+        confidence_threshold=settings.target_tracking_confidence_threshold,
+    )
     app.state.risk_sessions = RiskSessionStore(settings)
     app.state.frame_scheduler = LatestFrameScheduler[FrameAnalysisResponse]()
+    app.state.latest_frame_memory = LatestFrameMemory()
+    app.state.target_telemetry_hub = LatestTelemetryHub()
     max_analyze_body_bytes = (
         settings.max_image_bytes + settings.max_multipart_overhead_bytes
     )
@@ -146,7 +154,7 @@ def create_app(
     app.add_middleware(
         AnalyzeBodyLimitMiddleware,
         max_body_bytes=max_vlm_body_bytes,
-        paths={"/api/v1/vlm/query"},
+        paths={"/api/v1/vlm/query", "/api/v1/vlm/locate"},
     )
     app.add_middleware(
         CORSMiddleware,

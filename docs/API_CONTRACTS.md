@@ -314,6 +314,30 @@ interface GuidanceContract {
   reason_code: string;
 }
 
+type TargetTrackingState =
+  | "IDLE"
+  | "LOCATING"
+  | "LOCKED_TRACKING"
+  | "TARGET_LOST";
+
+type TargetHapticPattern =
+  | "NONE"
+  | "TARGET_LEFT_PULSE"
+  | "TARGET_CENTRE_PULSE"
+  | "TARGET_RIGHT_PULSE";
+
+interface TargetTrackingTelemetry {
+  tracking_state: TargetTrackingState;
+  target_name: string | null;
+  clock_direction: string | null;
+  target_center: NormalizedPoint | null;
+  confidence: number | null;
+  is_safety_overridden: boolean;
+  speech: string;
+  speak: boolean;
+  haptic_pattern: TargetHapticPattern;
+}
+
 interface StageTimings {
   decode_ms: number;
   detection_ms?: number;
@@ -339,12 +363,45 @@ interface FrameAnalysisResponse {
   corridors: CorridorCosts;
   overlay: OverlayContract;
   guidance: GuidanceContract;
+  target_tracking: TargetTrackingTelemetry;
   timings: StageTimings;
   degraded_modules: string[];
 }
 ```
 
 Before their owning phases, fields such as detections and surfaces return empty arrays and timing fields may be absent; field meanings do not change between phases.
+
+The backend retains one replaceable JPEG for the newest successfully decoded
+frame of each active Walk session. This bounded process-memory buffer exists
+only so an explicit locate request can atomically copy the current snapshot. It
+contains no history, is never persisted or logged, and is removed on session
+end. A malformed, rejected, or superseded frame never replaces a successfully
+decoded snapshot.
+
+`target_tracking` is optional assistive metadata and never replaces
+`guidance`. When `guidance.action` is anything other than `CLEAR`, the response
+must set `is_safety_overridden=true`, `target_tracking.speak=false`, and
+`target_tracking.haptic_pattern="NONE"`. Safety speech/haptics therefore remain
+the only immediate mobility instruction.
+
+### `WS /api/v1/walk/sessions/{session_id}/telemetry`
+
+An active session may subscribe to the target telemetry produced by completed
+Walk analyses. The WebSocket does not accept frames and never triggers detector,
+segmenter, VLM, or tracker work. Each subscriber has a queue capacity of one;
+a newer event replaces an unsent older event.
+
+```ts
+interface TargetTelemetryEvent extends TargetTrackingTelemetry {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  session_id: OpaqueId;
+  frame_id: number;
+}
+```
+
+Unknown sessions close with application code `4404`, ended sessions with
+`4409`, and an active connection closes normally when its Walk session ends.
 
 ### Phase 8 indoor hall semantics
 
@@ -804,3 +861,74 @@ Invariants:
   Mode.
 - The response contains generated text only; it is descriptive assistance, not
   a mobility-safety decision.
+
+### `POST /api/v1/vlm/locate`
+
+This endpoint is user-triggered. It performs one Moondream2 detection pass,
+unloads the VLM and releases CUDA cache, and only then initializes the CPU
+tracker. It is never called by continuous Walk processing.
+
+Query parameters:
+
+| Parameter | Type | Rules |
+|---|---|---|
+| `target_name` | string | Required, trimmed, 1–120 characters |
+| `session_id` | string | Optional active Walk session; required to use current-frame memory or enable tracking |
+
+Multipart parts:
+
+| Part | Type | Rules |
+|---|---|---|
+| `frame` | JPEG image | Optional explicit snapshot |
+| `image_base64` | string | Optional raw base64 or `data:image/jpeg;base64,...` |
+
+Exactly one image source is selected. An explicit request provides one of
+`frame` or `image_base64`. If neither is supplied, `session_id` selects an
+atomic copy of that session's latest decoded frame. An explicit snapshot may
+also include `session_id` to initialize tracking against that session. Without
+an active session, localization can succeed but `tracking_allowed` is `false`.
+
+```ts
+interface VLMTargetBox {
+  x_min: number;
+  y_min: number;
+  x_max: number;
+  y_max: number;
+}
+
+interface VLMLocatedTarget {
+  label: string;
+  confidence: number | null;
+  box: VLMTargetBox;
+  point: NormalizedPoint;
+}
+
+interface VLMLocateResponse {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  model: "moondream2";
+  text: string;
+  target: VLMLocatedTarget;
+  clock_direction: string;
+  tracking_allowed: boolean;
+  source_frame_id: number | null;
+  timings: VLMTimings;
+}
+```
+
+Moondream2's local `detect` API supplies normalized boxes but no calibrated
+probability. `target.confidence` is therefore `null`; the backend must not
+invent a score. If several boxes are returned, the largest valid box is chosen,
+with centre proximity as the deterministic tie-breaker. `point` is that box's
+centre. A missing target returns `NOT_FOUND`.
+
+For an active session, successful tracker initialization changes state from
+`LOCATING` to `LOCKED_TRACKING`. OpenCV MIL updates the normalized box on each
+Walk frame, while a target appearance histogram supplies normalized tracking
+confidence. Failed updates or confidence below the configured threshold change
+state to `TARGET_LOST` and schedule `Target lost. Stop and scan again.` This
+announcement remains pending while safety guidance is active. Tracker state,
+histograms, and frame snapshots are process-local and deleted on session end.
+
+The locator shares every `/query` worker, timeout, offline-runtime, VRAM guard,
+non-queueing, error-isolation, and immediate-unload invariant above.

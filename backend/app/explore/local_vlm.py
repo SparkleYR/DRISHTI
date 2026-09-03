@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import gc
 import inspect
+import math
 import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
 from time import perf_counter
-from typing import Protocol
+from collections.abc import Callable
+from typing import Protocol, TypeVar
 
 import cv2
 import numpy as np
@@ -18,11 +20,22 @@ from app.config import Settings
 
 
 MODEL_NAME = "moondream2"
+OutputT = TypeVar("OutputT")
 
 
 @dataclass(frozen=True)
 class VLMResult:
     text: str
+    load_ms: float
+    inference_ms: float
+    unload_ms: float
+
+
+@dataclass(frozen=True)
+class VLMLocationResult:
+    box: tuple[float, float, float, float]
+    point: tuple[float, float]
+    confidence: float | None
     load_ms: float
     inference_ms: float
     unload_ms: float
@@ -36,6 +49,10 @@ class VLMResourceError(VLMError):
     pass
 
 
+class VLMTargetNotFoundError(VLMError):
+    pass
+
+
 class VLMEngine(Protocol):
     @property
     def ready(self) -> bool: ...
@@ -44,6 +61,8 @@ class VLMEngine(Protocol):
     def detail(self) -> str: ...
 
     def query(self, image: np.ndarray, prompt: str) -> VLMResult: ...
+
+    def locate(self, image: np.ndarray, target_name: str) -> VLMLocationResult: ...
 
     def unload(self) -> None: ...
 
@@ -61,6 +80,9 @@ class UnavailableVLMEngine:
         return self._detail
 
     def query(self, _image: np.ndarray, _prompt: str) -> VLMResult:
+        raise VLMError(self._detail)
+
+    def locate(self, _image: np.ndarray, _target_name: str) -> VLMLocationResult:
         raise VLMError(self._detail)
 
     def unload(self) -> None:
@@ -109,6 +131,63 @@ class LazyMoondreamVLM:
         )
 
     def query(self, image: np.ndarray, prompt: str) -> VLMResult:
+        def operation(model: object, pil_image: Image.Image) -> str:
+            parameters = inspect.signature(model.query).parameters
+            if "settings" in parameters:
+                output = model.query(
+                    pil_image,
+                    prompt,
+                    settings={
+                        "max_tokens": self._max_tokens,
+                        "variant": None,
+                    },
+                )
+            else:
+                output = model.query(pil_image, prompt)
+            text = _answer_text(output)
+            if not text:
+                raise VLMError("The local VLM returned an empty answer.")
+            return text
+
+        text, load_ms, inference_ms, unload_ms = self._execute(image, operation)
+        return VLMResult(
+            text=text,
+            load_ms=load_ms,
+            inference_ms=inference_ms,
+            unload_ms=unload_ms,
+        )
+
+    def locate(self, image: np.ndarray, target_name: str) -> VLMLocationResult:
+        def operation(
+            model: object,
+            pil_image: Image.Image,
+        ) -> tuple[tuple[float, float, float, float], tuple[float, float]]:
+            parameters = inspect.signature(model.detect).parameters
+            if "settings" in parameters:
+                output = model.detect(
+                    pil_image,
+                    target_name,
+                    settings={"max_objects": 5, "variant": None},
+                )
+            else:
+                output = model.detect(pil_image, target_name)
+            return _location_geometry(output)
+
+        geometry, load_ms, inference_ms, unload_ms = self._execute(image, operation)
+        return VLMLocationResult(
+            box=geometry[0],
+            point=geometry[1],
+            confidence=None,
+            load_ms=load_ms,
+            inference_ms=inference_ms,
+            unload_ms=unload_ms,
+        )
+
+    def _execute(
+        self,
+        image: np.ndarray,
+        operation: Callable[[object, Image.Image], OutputT],
+    ) -> tuple[OutputT, float, float, float]:
         with self._lock:
             if not self.ready:
                 raise VLMError(self.detail)
@@ -156,22 +235,8 @@ class LazyMoondreamVLM:
                 pil_image = Image.fromarray(rgb)
                 inference_started = perf_counter()
                 with torch.inference_mode():
-                    parameters = inspect.signature(model.query).parameters
-                    if "settings" in parameters:
-                        output = model.query(
-                            pil_image,
-                            prompt,
-                            settings={
-                                "max_tokens": self._max_tokens,
-                                "variant": None,
-                            },
-                        )
-                    else:
-                        output = model.query(pil_image, prompt)
+                    output = operation(model, pil_image)
                 inference_ms = (perf_counter() - inference_started) * 1000
-                text = _answer_text(output)
-                if not text:
-                    raise VLMError("The local VLM returned an empty answer.")
             except torch.OutOfMemoryError as exc:
                 raise VLMResourceError(
                     "CUDA ran out of memory while processing the VLM snapshot."
@@ -190,12 +255,7 @@ class LazyMoondreamVLM:
                     pass
                 unload_ms = (perf_counter() - unload_started) * 1000
 
-            return VLMResult(
-                text=text,
-                load_ms=load_ms,
-                inference_ms=inference_ms,
-                unload_ms=unload_ms,
-            )
+            return output, load_ms, inference_ms, unload_ms
 
     def _configure_local_runtime(self) -> None:
         self._modules_cache.mkdir(parents=True, exist_ok=True)
@@ -259,3 +319,50 @@ def _answer_text(output: object) -> str:
         if isinstance(answer, str):
             return " ".join(answer.strip().split())
     raise VLMError("The local VLM returned an unsupported response shape.")
+
+
+def _location_geometry(
+    output: object,
+) -> tuple[tuple[float, float, float, float], tuple[float, float]]:
+    if not isinstance(output, dict) or not isinstance(output.get("objects"), list):
+        raise VLMError("The local VLM returned an unsupported location shape.")
+
+    valid: list[tuple[float, float, float, float]] = []
+    for item in output["objects"]:
+        if not isinstance(item, dict):
+            continue
+        try:
+            box = tuple(
+                float(item[key])
+                for key in ("x_min", "y_min", "x_max", "y_max")
+            )
+        except (KeyError, TypeError, ValueError):
+            continue
+        if not all(math.isfinite(value) for value in box):
+            continue
+        x_min, y_min, x_max, y_max = (
+            max(0.0, min(1.0, value)) for value in box
+        )
+        if x_min >= x_max or y_min >= y_max:
+            continue
+        valid.append((x_min, y_min, x_max, y_max))
+
+    if not valid:
+        raise VLMTargetNotFoundError(
+            "The requested target was not found in the snapshot."
+        )
+
+    def rank(box: tuple[float, float, float, float]) -> tuple[float, float]:
+        x_min, y_min, x_max, y_max = box
+        area = (x_max - x_min) * (y_max - y_min)
+        centre_x = (x_min + x_max) / 2.0
+        centre_y = (y_min + y_max) / 2.0
+        centre_distance = abs(centre_x - 0.5) + abs(centre_y - 0.5)
+        return area, -centre_distance
+
+    selected = max(valid, key=rank)
+    point = (
+        (selected[0] + selected[2]) / 2.0,
+        (selected[1] + selected[3]) / 2.0,
+    )
+    return selected, point

@@ -71,6 +71,7 @@ def test_openapi_exposes_only_approved_phase_ten_routes(client: TestClient) -> N
             "/api/v1/dashboard/accessibility",
         "/api/v1/explore",
         "/api/v1/vlm/query",
+        "/api/v1/vlm/locate",
     }
 
 

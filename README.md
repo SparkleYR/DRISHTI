@@ -27,8 +27,12 @@ remain implemented and in review. The repository currently provides:
   route-number, confidence, and no-text results
 - A minimal Expo **Read sign once** control for physically checking the Explore
   contract without turning Expo into a production client
-- A typed, on-demand local Moondream2 snapshot-query API with file/base64 input,
-  a non-queueing worker, timeout, CUDA free-memory guard, and immediate unload
+- Typed, on-demand local Moondream2 query and target-localization APIs with
+  file/base64 or active-session snapshot input, a non-queueing worker, timeout,
+  CUDA free-memory guard, and immediate unload
+- Session-scoped Ask -> Lock -> Guide tracking with clock-face direction,
+  target-loss handling, strict safety-guidance preemption, and latest-only
+  WebSocket telemetry
 - Indoor obstacle mapping, relative visible-floor extent, stairs/level-change
   stops, and corroborated wall/dead-end awareness using the existing typed
   corridor, overlay, and risk contracts
@@ -92,6 +96,8 @@ Phase 9 uses the Apache-2.0 `vikhyatk/moondream2` release pinned to
 `local_files_only`, a repository-local trusted-code cache, and offline
 environment flags; it never downloads model files. The VLM is loaded only for
 an explicit snapshot request and is unloaded before the response is returned.
+Target tracking starts only after unload and uses CPU OpenCV state; Moondream2
+is never added to continuous Walk processing.
 
 ## Initialize SQLite
 
@@ -185,6 +191,18 @@ curl.exe -X POST http://127.0.0.1:8000/api/v1/vlm/query -F "prompt=What large ve
 
 The Android client may alternatively send `image_base64`. Do not invoke this
 endpoint from the continuous camera loop.
+
+Locate a target in an explicit snapshot:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:8000/api/v1/vlm/locate?target_name=bus" -F "frame=@test-media/phase2/ultralytics-bus.jpg;type=image/jpeg"
+```
+
+Include an active Walk `session_id` to initialize tracking. If the request omits
+both image parts, the backend atomically copies that session's latest decoded
+frame. Target metadata is then included in each Walk response and is also
+available from `ws://127.0.0.1:8000/api/v1/walk/sessions/{session_id}/telemetry`.
+Safety `guidance` always takes precedence over target speech and haptics.
 
 ## Verify Phase 10
 

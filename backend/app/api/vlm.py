@@ -5,20 +5,184 @@ import binascii
 from time import perf_counter
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, File, Form, Query, Request, UploadFile
 from starlette.concurrency import run_in_threadpool
 
 from app.config import Settings
 from app.errors import AppError, ErrorCode
-from app.explore.local_vlm import VLMEngine, VLMError, VLMResourceError
+from app.explore.local_vlm import (
+    VLMEngine,
+    VLMError,
+    VLMResourceError,
+    VLMTargetNotFoundError,
+)
 from app.explore.vlm_executor import VLMExecutor
 from app.frame_ingress import JPEG_CONTENT_TYPE, decode_jpeg
 from app.schemas.common import utc_now
-from app.schemas.vlm import VLMTimings, VLMQueryResponse
+from app.perception.target_tracking import TargetTrackingSessionStore, clock_direction
+from app.scheduling.frame_memory import LatestFrameMemory
+from app.schemas.vlm import (
+    VLMLocatedTarget,
+    VLMLocateResponse,
+    VLMQueryResponse,
+    VLMTargetBox,
+    VLMTimings,
+)
 from app.schemas.walk import RotationDegrees
 
 
 router = APIRouter(prefix="/api/v1/vlm", tags=["vlm"])
+
+
+@router.post("/locate", response_model=VLMLocateResponse)
+async def locate_vlm_target(
+    request: Request,
+    target_name: Annotated[str, Query(min_length=1, max_length=120)],
+    session_id: Annotated[str | None, Query(min_length=1)] = None,
+    frame: Annotated[UploadFile | None, File()] = None,
+    image_base64: Annotated[str | None, Form()] = None,
+) -> VLMLocateResponse:
+    started = perf_counter()
+    target_name = " ".join(target_name.strip().split())
+    if not target_name:
+        raise AppError(
+            ErrorCode.INVALID_REQUEST,
+            "target_name must contain non-whitespace text.",
+            status_code=422,
+        )
+
+    if session_id is not None:
+        request.app.state.walk_sessions.require_active(session_id)
+    target_sessions: TargetTrackingSessionStore = (
+        request.app.state.target_tracking_sessions
+    )
+    settings: Settings = request.app.state.settings
+    engine: VLMEngine = request.app.state.vlm_engine
+    if not engine.ready:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise AppError(
+            ErrorCode.MODEL_NOT_READY,
+            "The local VLM is unavailable.",
+            status_code=503,
+            retryable=True,
+            details={"vlm": engine.detail},
+        )
+
+    source_frame_id: int | None = None
+    rotation = RotationDegrees.DEG_0
+    if frame is None and image_base64 is None and session_id is not None:
+        frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
+        snapshot = frame_memory.snapshot(session_id)
+        frame_bytes = snapshot.jpeg_bytes
+        rotation = snapshot.rotation_degrees
+        source_frame_id = snapshot.frame_id
+    else:
+        frame_bytes = await _read_image_payload(
+            frame,
+            image_base64,
+            max_bytes=settings.vlm_max_image_bytes,
+        )
+
+    decode_started = perf_counter()
+    decoded = await run_in_threadpool(
+        decode_jpeg,
+        frame_bytes,
+        rotation_degrees=rotation,
+        max_image_width=settings.vlm_max_image_width,
+        max_image_pixels=settings.vlm_max_image_pixels,
+    )
+    decode_ms = (perf_counter() - decode_started) * 1000
+    del frame_bytes
+
+    if session_id is not None:
+        target_sessions.begin_locating(session_id, target_name)
+
+    executor: VLMExecutor = request.app.state.vlm_executor
+    try:
+        result = await executor.run(
+            lambda: engine.locate(decoded.image, target_name),
+            timeout_seconds=settings.vlm_timeout_seconds,
+        )
+    except AppError:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise
+    except VLMTargetNotFoundError as exc:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise AppError(
+            ErrorCode.NOT_FOUND,
+            "The requested target was not found in the snapshot.",
+            status_code=404,
+        ) from exc
+    except VLMResourceError as exc:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise AppError(
+            ErrorCode.MODEL_NOT_READY,
+            "The local VLM could not reserve safe CUDA memory.",
+            status_code=503,
+            retryable=True,
+            details={"reason": str(exc)},
+        ) from exc
+    except VLMError as exc:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise AppError(
+            ErrorCode.MODEL_NOT_READY,
+            "The local VLM could not locate this target.",
+            status_code=503,
+            retryable=True,
+            details={"reason": str(exc)},
+        ) from exc
+    except Exception as exc:
+        if session_id is not None:
+            target_sessions.fail_locating(session_id)
+        raise AppError(
+            ErrorCode.MODEL_NOT_READY,
+            "The local VLM could not locate this target.",
+            status_code=503,
+            retryable=True,
+            details={"reason": type(exc).__name__},
+        ) from exc
+
+    tracking_allowed = False
+    if session_id is not None:
+        tracking_allowed = target_sessions.lock_target(
+            session_id,
+            target_name,
+            decoded.image,
+            result.box,
+        )
+
+    direction = clock_direction(result.point[0])
+    total_ms = (perf_counter() - started) * 1000
+    return VLMLocateResponse(
+        server_time=utc_now(),
+        text=f"{target_name.capitalize()} detected at {direction}.",
+        target=VLMLocatedTarget(
+            label=target_name,
+            confidence=result.confidence,
+            box=VLMTargetBox(
+                x_min=result.box[0],
+                y_min=result.box[1],
+                x_max=result.box[2],
+                y_max=result.box[3],
+            ),
+            point={"x": result.point[0], "y": result.point[1]},
+        ),
+        clock_direction=direction,
+        tracking_allowed=tracking_allowed,
+        source_frame_id=source_frame_id,
+        timings=VLMTimings(
+            decode_ms=decode_ms,
+            load_ms=result.load_ms,
+            inference_ms=result.inference_ms,
+            unload_ms=result.unload_ms,
+            total_ms=total_ms,
+        ),
+    )
 
 
 @router.post("/query", response_model=VLMQueryResponse)

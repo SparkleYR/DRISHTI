@@ -39,8 +39,11 @@ misclassification showed that the Cityscapes checkpoint could not support its
 accepted hall semantics. The ADE20K/free-space corrective implementation and
 automated checks are complete, but replay over approved controlled indoor frames,
 the repeated live hall check, and supplemental user gate approval remain pending.
-Phase 9 implementation, automated checks, and the real RTX 4060 model/core-model
-coexistence check are complete; user gate approval remains pending. Phase 10
+Phase 9 now includes the explicitly approved Ask -> Lock -> Guide amendment.
+The snapshot-query implementation, amended locator/tracker automated checks,
+and concurrent real RTX 4060 locator/core-model coexistence check pass. The
+controlled target-loss/safety-preemption demonstration and user gate approval
+remain required before completion. Phase 10
 implementation and automated checks are complete; its controlled hall
 demonstration and user gate approval remain pending.
 
@@ -304,9 +307,9 @@ Phases 7 through 11 are not authorized merely because they appear in this plan. 
 
 **Goal:** Answer narrow, on-demand scene questions locally without affecting real-time safety processing.
 
-**Deliverables:** Local Moondream2 model files, typed `POST /api/v1/vlm/query` multipart contract with JPEG-file or base64 input, one non-queueing worker, timeout, CUDA free-memory guard, lazy per-request loading, and immediate unload/cache release. The Android application consumes the contract separately; Expo receives no Phase 9 product work.
+**Deliverables:** Local Moondream2 model files; typed `POST /api/v1/vlm/query` and `POST /api/v1/vlm/locate` contracts; explicit JPEG/base64 locator input or one replaceable in-memory snapshot from an active Walk session; one non-queueing VLM worker; timeout; CUDA free-memory guard; lazy per-request loading and immediate unload/cache release; normalized target box/point extraction; session-scoped `IDLE`, `LOCATING`, `LOCKED_TRACKING`, and `TARGET_LOST` state; OpenCV tracker handoff with appearance-confidence rejection; clock-face direction metadata; lost-target speech metadata; strict Risk Engine preemption; and a bounded latest-only target telemetry WebSocket. The VLM is never invoked by continuous Walk processing, the tracker performs no identity recognition, and no frame is persisted. Android application work remains separate and unchanged.
 
-**Acceptance criteria:** The endpoint returns an accurate natural-language answer for a controlled image and prompt; file and base64 payloads validate against the typed contract; runtime inference uses local files and CUDA only; submitted snapshots are never persisted; timeout and concurrent-request behavior are safe; insufficient VRAM degrades only the VLM request; the core detector and Walk Mode remain available before, during, and after VLM work without CUDA OOM. Phase 9 remains `IN_REVIEW` until the real-model CUDA check and user gate approval pass.
+**Acceptance criteria:** The query endpoint returns an accurate natural-language answer for a controlled image and prompt. The locator returns a valid normalized box and centre for a controlled target, can atomically copy the newest decoded frame from an active session, and initializes tracking only for an active session. File/base64 and current-frame inputs validate against the typed contract. Subsequent Walk frames update clock direction, a failed or low-confidence tracker transitions to `TARGET_LOST`, and the one-shot lost command is emitted. Every non-`CLEAR` safety action suppresses target speech/haptics and exposes `is_safety_overridden=true`; a controlled critical obstacle still produces the existing immediate safety action. WebSocket subscribers receive newest-only target metadata without triggering inference. Runtime inference uses local files and CUDA only; snapshots are never persisted; timeout and concurrent-request behavior remain safe; insufficient VRAM degrades only the VLM request; and the detector/segmenter and Walk Mode remain available before, during, and after real locator work without CUDA OOM. Phase 9 remains `IN_REVIEW` until automated checks, the amended real-model CUDA coexistence check, the controlled physical Ask -> Lock -> Guide demonstration, and user gate approval pass.
 
 ### Phase 10 — Recurring Hazards and Accessibility Scoring
 
