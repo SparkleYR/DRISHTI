@@ -4,7 +4,11 @@ DRISHTI is a local-only accessibility prototype composed of a FastAPI service wi
 
 ## Current scope
 
-Phases 0 through 8 are complete. Phase 9 local VLM integration is implemented and in review. Phase 10 recurring indoor hazards and explainable accessibility scoring is implemented and awaiting its controlled hall review. The repository currently provides:
+Phases 0 through 7 are complete. Phase 8 has been reopened for supplemental
+review after its indoor accuracy correction; implementation and automated CUDA
+checks pass, while controlled-frame replay and the repeated hall check remain.
+Phase 9 local VLM integration and Phase 10 recurring-hazard/accessibility work
+remain implemented and in review. The repository currently provides:
 
 - Local backend configuration, structured logging, health reporting, and SQLite/Alembic initialization
 - An in-memory walking-session API and a typed multipart JPEG analysis endpoint with YOLO11n detections
@@ -13,7 +17,8 @@ Phases 0 through 8 are complete. Phase 9 local VLM integration is implemented an
 - A normalized capture-to-preview coordinate transform with visible test markers and crop-aware boxes
 - Session-scoped object tracking, motion/approach evidence, and geometric relative proximity
 - Perspective-aware corridor occupancy and normalized surface/corridor polygons
-- Local CUDA semantic segmentation for sidewalk, road, non-walkable, and unknown regions
+- Local CUDA ADE20K semantic segmentation for indoor floor, structural,
+  furniture, road, and unknown surface evidence
 - Local SQLite hazard, observation, status-history, and consented-evidence persistence
 - Anonymous report, active/nearby query, optimistic transition, merge, and dashboard-summary APIs
 - A polling AccessOps dashboard with an overview, verification queue, workflow actions, and normalized local map plane
@@ -24,8 +29,9 @@ Phases 0 through 8 are complete. Phase 9 local VLM integration is implemented an
   contract without turning Expo into a production client
 - A typed, on-demand local Moondream2 snapshot-query API with file/base64 input,
   a non-queueing worker, timeout, CUDA free-memory guard, and immediate unload
-- Indoor hall desk mapping plus conservative wall/dead-end awareness using the
-  existing local detector, segmentation, corridor, overlay, and risk contracts
+- Indoor obstacle mapping, relative visible-floor extent, stairs/level-change
+  stops, and corroborated wall/dead-end awareness using the existing typed
+  corridor, overlay, and risk contracts
 - Deterministic same-category, same-map duplicate consolidation with preserved
   observations and configurable normalized distance/time thresholds
 - Category-aware temporary-hazard expiry, including short-lived person reports
@@ -68,10 +74,10 @@ Download the official `yolo11n.pt` development asset to
 `models\detector\README.md`. Normal backend startup is offline and will report
 the detector unavailable instead of downloading missing weights.
 
-Download the approved files from
-`nvidia/segformer-b0-finetuned-cityscapes-640-1280` into
-`models\segmentation\segformer-b0-cityscapes`, then verify the weight digest
-against `models\segmentation\README.md`. SegFormer also loads from local files
+Download the approved files from `nvidia/segformer-b0-finetuned-ade-512-512`
+into `models\segmentation\segformer-b0-ade20k`, then verify the safetensors
+digest against `models\segmentation\README.md`. The prior Cityscapes snapshot is
+retained only for controlled fallback comparisons. SegFormer loads local files
 only, with Hugging Face offline mode and telemetry disabled.
 
 Phase 7 uses the ignored local runtime at
@@ -137,10 +143,11 @@ In the harness:
 8. Point the camera at a prepared high-contrast English sign containing a route
    token such as `BUS 42A CENTRAL`, tap **Read sign once**, and inspect the raw
    confidence, message, and route-number response.
-9. For Phase 8, test a clear hall, a frontal wall, a side wall with an open
-   forward path, and controlled desk/chair/backpack/person arrangements. Confirm
-   that a frontal wall stabilizes to `WALL_OR_DEAD_END_AHEAD`, while clear and
-   side-wall scenes do not produce that reason.
+9. For the Phase 8 supplemental gate, test a clear hall, a frontal wall, a side
+   wall with an open forward path, stairs, and controlled indoor obstacles.
+   Confirm a safe polygon is reachable on clear floor, a frontal wall stabilizes
+   to `WALL_OR_DEAD_END_AHEAD`, stairs stabilize to
+   `STAIRS_OR_LEVEL_CHANGE_AHEAD`, and no movement points into a wall.
 
 The laptop private address may change when Wi-Fi or hotspot connections change. Port `8081` belongs to Expo; the backend uses port `8000`.
 
@@ -192,8 +199,10 @@ npm run config:check --workspace apps/mobile
 npm run export:android --workspace apps/mobile
 ```
 
-The existing real-model test uses local YOLO11n and SegFormer weights with the controlled
-street fixture while outbound HTTP is denied. The real-OCR test sends an
+The existing real-model test uses local YOLO11n and ADE20K SegFormer weights
+with the controlled street fixture while outbound HTTP is denied. The optional
+`real_indoor` test reads explicitly approved controlled frames from the external
+`DRISHTI_INDOOR_FIXTURE_DIR`; continuous walk frames are never committed. The real-OCR test sends an
 in-memory prepared sign through the actual Explore API while outbound HTTP is
 also denied. Phase 7 OCR runs in one independently bounded CPU worker; it cannot
 queue behind or disable Walk inference.

@@ -34,6 +34,19 @@ class ClearHallSegmenter:
         )
 
 
+class AllStairsSegmenter:
+    ready = True
+    detail = "Controlled stairs fixture."
+
+    def segment(self, image: np.ndarray) -> SegmentationFrame:
+        height, width = image.shape[:2]
+        return SegmentationFrame(
+            class_map=np.full((height, width), 53, dtype=np.uint8),
+            confidence_map=np.full((height, width), 0.95, dtype=np.float32),
+            id_to_label={53: "stairs"},
+        )
+
+
 def test_wall_ahead_uses_stable_stop_and_existing_contract(
     client: TestClient,
 ) -> None:
@@ -94,3 +107,16 @@ def test_desk_uses_generic_tracking_spatial_and_risk_pipeline(
         "PAUSE_UNCLEAR",
     }
     assert second["guidance"]["action"] != "CLEAR"
+
+
+def test_stairs_ahead_use_dedicated_stop_reason(client: TestClient) -> None:
+    client.app.state.segmenter = AllStairsSegmenter()
+    session_id = str(start_session(client)["session_id"])
+
+    pending = analyze(client, session_id, frame_id=0).json()
+    stopped = analyze(client, session_id, frame_id=1).json()
+
+    assert pending["guidance"]["reason_code"] == "ALERT_PERSISTENCE_PENDING"
+    assert stopped["guidance"]["action"] == "STOP"
+    assert stopped["guidance"]["reason_code"] == "STAIRS_OR_LEVEL_CHANGE_AHEAD"
+    assert stopped["overlay"]["direction_arrow"] == "STOP"

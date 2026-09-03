@@ -27,7 +27,11 @@ def test_canonicalizes_supported_classes_and_normalizes_boxes() -> None:
 
 @pytest.mark.parametrize(
     "label",
-    ["person", "chair", "desk", "bicycle", "motorcycle", "car", "bus", "bench"],
+    [
+        "person", "chair", "desk", "bicycle", "motorcycle", "car", "bus", "bench",
+        "door", "suitcase", "umbrella", "potted plant", "couch", "bed", "tv",
+        "refrigerator", "sink", "toilet",
+    ],
 )
 def test_keeps_every_supported_coco_demonstration_class(label: str) -> None:
     result = canonicalize_detections(

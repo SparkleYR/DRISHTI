@@ -245,7 +245,11 @@ async def _process_accepted_frame(
     spatial_started = perf_counter()
     corridor = analyze_corridors(tracked, settings, segmentation)
     surfaces = (
-        extract_surface_regions(segmentation, frame_id=frame_id)
+        extract_surface_regions(
+            segmentation,
+            frame_id=frame_id,
+            label_set=settings.segmentation_label_set,
+        )
         if segmentation is not None
         else []
     )

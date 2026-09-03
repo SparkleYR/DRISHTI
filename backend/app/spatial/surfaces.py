@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -9,38 +10,108 @@ from app.perception.segmenter import SegmentationFrame
 from app.schemas.walk import NormalizedPoint, SurfaceKind, SurfaceRegion
 
 
-NON_WALKABLE_LABELS = frozenset(
-    {
-        "building",
-        "wall",
-        "fence",
-        "pole",
-        "traffic light",
-        "traffic sign",
-        "vegetation",
-        "person",
-        "rider",
-        "car",
-        "truck",
-        "bus",
-        "train",
-        "motorcycle",
-        "bicycle",
-    }
-)
+SegmentationLabelSet = Literal["ADE20K", "CITYSCAPES"]
+
+HAZARD_SURFACE_TOKENS = frozenset({"stairs", "stairway", "step", "escalator"})
+
+SURFACE_TOKENS: dict[SegmentationLabelSet, dict[SurfaceKind, frozenset[str]]] = {
+    "ADE20K": {
+        SurfaceKind.WALKABLE: frozenset(
+            {"floor", "flooring", "rug", "carpet", "path", "sidewalk", "pavement"}
+        ),
+        SurfaceKind.ROAD: frozenset({"road", "route"}),
+        SurfaceKind.NON_WALKABLE: frozenset(
+            {
+                "wall",
+                "building",
+                "ceiling",
+                "door",
+                "screen door",
+                "windowpane",
+                "cabinet",
+                "wardrobe",
+                "column",
+                "pillar",
+                "table",
+                "desk",
+                "chair",
+                "armchair",
+                "sofa",
+                "shelf",
+                "bookcase",
+                "railing",
+                "bannister",
+                "fence",
+                "pole",
+                "person",
+                "rider",
+                "car",
+                "truck",
+                "bus",
+                "train",
+                "motorcycle",
+                "minibike",
+                "bicycle",
+                "van",
+                "stairs",
+                "stairway",
+                "step",
+                "escalator",
+            }
+        ),
+        SurfaceKind.UNKNOWN: frozenset(),
+    },
+    "CITYSCAPES": {
+        SurfaceKind.WALKABLE: frozenset({"sidewalk", "pavement"}),
+        SurfaceKind.ROAD: frozenset({"road", "route"}),
+        SurfaceKind.NON_WALKABLE: frozenset(
+            {
+                "building",
+                "wall",
+                "fence",
+                "pole",
+                "traffic light",
+                "traffic sign",
+                "vegetation",
+                "person",
+                "rider",
+                "car",
+                "truck",
+                "bus",
+                "train",
+                "motorcycle",
+                "bicycle",
+            }
+        ),
+        SurfaceKind.UNKNOWN: frozenset(),
+    },
+}
 
 
-def semantic_kind_map(segmentation: SegmentationFrame) -> np.ndarray:
-    kinds = np.full(segmentation.class_map.shape, _kind_code(SurfaceKind.UNKNOWN), dtype=np.uint8)
+def semantic_kind_map(
+    segmentation: SegmentationFrame,
+    *,
+    label_set: SegmentationLabelSet,
+) -> np.ndarray:
+    kinds = np.full(
+        segmentation.class_map.shape,
+        _kind_code(SurfaceKind.UNKNOWN),
+        dtype=np.uint8,
+    )
     for class_id, label in segmentation.id_to_label.items():
-        if label == "sidewalk":
-            kind = SurfaceKind.WALKABLE
-        elif label == "road":
-            kind = SurfaceKind.ROAD
-        elif label in NON_WALKABLE_LABELS:
-            kind = SurfaceKind.NON_WALKABLE
-        else:
-            kind = SurfaceKind.UNKNOWN
+        tokens = label_tokens(label)
+        kind = next(
+            (
+                candidate
+                for candidate in (
+                    SurfaceKind.NON_WALKABLE,
+                    SurfaceKind.WALKABLE,
+                    SurfaceKind.ROAD,
+                )
+                if tokens & SURFACE_TOKENS[label_set][candidate]
+            ),
+            SurfaceKind.UNKNOWN,
+        )
         kinds[segmentation.class_map == class_id] = _kind_code(kind)
     return kinds
 
@@ -49,8 +120,9 @@ def extract_surface_regions(
     segmentation: SegmentationFrame,
     *,
     frame_id: int,
+    label_set: SegmentationLabelSet,
 ) -> list[SurfaceRegion]:
-    kind_map = semantic_kind_map(segmentation)
+    kind_map = semantic_kind_map(segmentation, label_set=label_set)
     regions: list[SurfaceRegion] = []
     for kind in SurfaceKind:
         mask = (kind_map == _kind_code(kind)).astype(np.uint8)
@@ -108,3 +180,21 @@ def _regions_for_mask(
 
 def _kind_code(kind: SurfaceKind) -> int:
     return list(SurfaceKind).index(kind)
+
+
+def label_tokens(label: str) -> frozenset[str]:
+    """Normalize model labels, including comma-separated dataset synonyms."""
+    return frozenset(
+        token.strip().lower() for token in label.split(",") if token.strip()
+    )
+
+
+def semantic_class_ids(
+    segmentation: SegmentationFrame,
+    tokens: frozenset[str],
+) -> frozenset[int]:
+    return frozenset(
+        class_id
+        for class_id, label in segmentation.id_to_label.items()
+        if label_tokens(label) & tokens
+    )

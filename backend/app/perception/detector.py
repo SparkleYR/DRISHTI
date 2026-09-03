@@ -26,6 +26,16 @@ CANONICAL_LABELS = frozenset(
         "car",
         "bus",
         "bench",
+        "door",
+        "suitcase",
+        "umbrella",
+        "potted plant",
+        "couch",
+        "bed",
+        "tv",
+        "refrigerator",
+        "sink",
+        "toilet",
     }
 )
 LABEL_ALIASES = {

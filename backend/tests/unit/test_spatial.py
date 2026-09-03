@@ -65,8 +65,12 @@ def test_segmentation_maps_sidewalk_road_and_unknown_regions() -> None:
         confidence_map=np.full((100, 100), 0.9, dtype=np.float32),
         id_to_label={0: "road", 1: "sidewalk", 10: "sky"},
     )
-    kind_map = semantic_kind_map(segmentation)
-    regions = extract_surface_regions(segmentation, frame_id=8)
+    kind_map = semantic_kind_map(segmentation, label_set="ADE20K")
+    regions = extract_surface_regions(
+        segmentation,
+        frame_id=8,
+        label_set="ADE20K",
+    )
 
     assert kind_map[80, 20] == list(SurfaceKind).index(SurfaceKind.WALKABLE)
     assert kind_map[80, 80] == list(SurfaceKind).index(SurfaceKind.ROAD)
@@ -83,7 +87,7 @@ def test_segmentation_maps_sidewalk_road_and_unknown_regions() -> None:
 def test_walkable_surface_contributes_to_preferred_corridor_polygon() -> None:
     settings = Settings(corridor_clear_margin=0.05)
     class_map = np.full((120, 120), 2, dtype=np.uint8)
-    class_map[45:, 80:] = 1
+    class_map[45:, 60:] = 1
     segmentation = SegmentationFrame(
         class_map=class_map,
         confidence_map=np.ones((120, 120), dtype=np.float32),
@@ -92,6 +96,45 @@ def test_walkable_surface_contributes_to_preferred_corridor_polygon() -> None:
     result = analyze_corridors([], settings, segmentation)
     assert result.preferred == CorridorChoice.RIGHT
     assert len(result.safe_polygons) == 1
+
+
+def test_ade20k_synonym_tokens_map_indoor_floor_and_furniture() -> None:
+    class_map = np.array([[1, 2, 3, 4]], dtype=np.uint8)
+    segmentation = SegmentationFrame(
+        class_map=class_map,
+        confidence_map=np.ones_like(class_map, dtype=np.float32),
+        id_to_label={
+            1: "floor, flooring",
+            2: "rug, carpet",
+            3: "door, double door",
+            4: "road, route",
+        },
+    )
+
+    kinds = semantic_kind_map(segmentation, label_set="ADE20K")
+
+    assert kinds.tolist() == [[
+        list(SurfaceKind).index(SurfaceKind.WALKABLE),
+        list(SurfaceKind).index(SurfaceKind.WALKABLE),
+        list(SurfaceKind).index(SurfaceKind.NON_WALKABLE),
+        list(SurfaceKind).index(SurfaceKind.ROAD),
+    ]]
+
+
+def test_clear_indoor_floor_has_high_extent_and_safe_centre() -> None:
+    settings = Settings(_env_file=None)
+    segmentation = SegmentationFrame(
+        class_map=np.full((120, 120), 3, dtype=np.uint8),
+        confidence_map=np.full((120, 120), 0.95, dtype=np.float32),
+        id_to_label={3: "floor"},
+    )
+
+    result = analyze_corridors([], settings, segmentation)
+
+    assert result.preferred == CorridorChoice.CENTRE
+    assert result.floor_extents.centre_cost == 1.0
+    assert len(result.safe_polygons) == 1
+    assert result.uncertain_choices == frozenset()
 
 
 def test_confident_wall_across_all_corridors_is_a_dead_end() -> None:
@@ -105,6 +148,7 @@ def test_confident_wall_across_all_corridors_is_a_dead_end() -> None:
     result = analyze_corridors([], settings, segmentation)
 
     assert result.wall_dead_end is True
+    assert result.floor_extents.centre_cost == 0.0
     assert result.wall_ratios.left_cost == 1.0
     assert result.wall_ratios.centre_cost == 1.0
     assert result.wall_ratios.right_cost == 1.0
@@ -123,6 +167,36 @@ def test_side_wall_is_not_misclassified_as_a_dead_end() -> None:
     result = analyze_corridors([], settings, segmentation)
 
     assert result.wall_ratios.left_cost > result.wall_ratios.right_cost
+    assert result.wall_dead_end is False
+
+
+def test_stairs_are_tracked_as_hazard_surface_evidence() -> None:
+    settings = Settings(_env_file=None)
+    segmentation = SegmentationFrame(
+        class_map=np.full((120, 120), 53, dtype=np.uint8),
+        confidence_map=np.full((120, 120), 0.95, dtype=np.float32),
+        id_to_label={53: "stairs, steps"},
+    )
+
+    result = analyze_corridors([], settings, segmentation)
+
+    assert result.stairs_ratios.centre_cost == 1.0
+    assert result.floor_extents.centre_cost == 0.0
+
+
+def test_floor_extent_median_ignores_narrow_occluding_leg() -> None:
+    settings = Settings(_env_file=None)
+    class_map = np.full((120, 120), 3, dtype=np.uint8)
+    class_map[70:, 58:62] = 0
+    segmentation = SegmentationFrame(
+        class_map=class_map,
+        confidence_map=np.full((120, 120), 0.95, dtype=np.float32),
+        id_to_label={0: "wall", 3: "floor"},
+    )
+
+    result = analyze_corridors([], settings, segmentation)
+
+    assert result.floor_extents.centre_cost > 0.95
     assert result.wall_dead_end is False
 
 

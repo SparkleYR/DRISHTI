@@ -36,6 +36,7 @@ models/**/*.safetensors
 models/vlm/moondream2/**
 models/vlm/starmie-v1/**
 !models/**/README.md
+!models/**/MODEL_CARD.md
 
 # Editors and operating systems
 .idea/

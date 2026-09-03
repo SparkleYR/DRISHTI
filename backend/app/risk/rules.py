@@ -7,6 +7,7 @@ from app.risk.scoring import RiskAssessment
 from app.schemas.walk import (
     ApproachState,
     CorridorChoice,
+    CorridorCosts,
     Direction,
     GuidanceAction,
     ProximityBand,
@@ -55,7 +56,22 @@ def select_action(
             level=RiskLevel.HIGH,
             reason_code="WALL_OR_DEAD_END_AHEAD",
             preferred_corridor=CorridorChoice.NONE,
-            evidence_score=corridor.wall_ratios.centre_cost,
+            evidence_score=max(
+                corridor.wall_ratios.centre_cost,
+                1.0 - corridor.floor_extents.centre_cost,
+            ),
+        )
+
+    if (
+        corridor.stairs_ratios.centre_cost
+        >= settings.stairs_centre_ratio_threshold
+    ):
+        return ProposedDecision(
+            action=GuidanceAction.STOP,
+            level=RiskLevel.HIGH,
+            reason_code="STAIRS_OR_LEVEL_CHANGE_AHEAD",
+            preferred_corridor=CorridorChoice.NONE,
+            evidence_score=corridor.stairs_ratios.centre_cost,
         )
 
     centre_assessments = [
@@ -100,6 +116,10 @@ def select_action(
             preferred in {CorridorChoice.LEFT, CorridorChoice.RIGHT}
             and preferred in corridor.walkable_choices
             and preferred not in corridor.uncertain_choices
+            and _corridor_value(corridor.floor_extents, preferred)
+            >= settings.direction_min_free_extent
+            and _corridor_value(corridor.wall_ratios, preferred)
+            < settings.wall_side_ratio_threshold
         ):
             return ProposedDecision(
                 action=(
@@ -174,3 +194,13 @@ def _is_critical_approaching_vehicle(
         and spatial.path_overlap >= settings.risk_critical_path_overlap
         and spatial.proximity.score >= settings.risk_critical_proximity
     )
+
+
+def _corridor_value(values: CorridorCosts, choice: CorridorChoice) -> float:
+    if choice == CorridorChoice.LEFT:
+        return values.left_cost
+    if choice == CorridorChoice.CENTRE:
+        return values.centre_cost
+    if choice == CorridorChoice.RIGHT:
+        return values.right_cost
+    return 0.0

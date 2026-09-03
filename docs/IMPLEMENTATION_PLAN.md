@@ -29,12 +29,20 @@ This workflow is backend-first. The production Android application will be imple
 | 5 | Continuous Capture Hardening | Core MVP | `COMPLETE` |
 | 6 | Hazard Reporting and Local Dashboard Loop | Core MVP | `COMPLETE` |
 | 7 | Explore Mode and OCR | Optional expansion | `COMPLETE` |
-| 8 | Indoor Campus Hazard Expansion | Optional expansion | `COMPLETE` |
+| 8 | Indoor Campus Hazard Expansion | Optional expansion | `IN_REVIEW` |
 | 9 | Optional Local Vision-Language Model | Optional expansion | `IN_REVIEW` |
 | 10 | Recurring Hazards and Accessibility Scoring | Optional expansion | `IN_REVIEW` |
 | 11 | Reliability and Product Hardening | Optional expansion | `NOT_STARTED` |
 
-Phases 0 through 8 passed their automated and required physical checks, and their gates were approved. Phase 9 implementation, automated checks, and the real RTX 4060 model/core-model coexistence check are complete; user gate approval remains pending. Phase 10 implementation and automated checks are complete; its controlled hall demonstration and user gate approval remain pending.
+Phases 0 through 7 remain complete. Phase 8 was reopened after measured indoor
+misclassification showed that the Cityscapes checkpoint could not support its
+accepted hall semantics. The ADE20K/free-space corrective implementation and
+automated checks are complete, but replay over approved controlled indoor frames,
+the repeated live hall check, and supplemental user gate approval remain pending.
+Phase 9 implementation, automated checks, and the real RTX 4060 model/core-model
+coexistence check are complete; user gate approval remains pending. Phase 10
+implementation and automated checks are complete; its controlled hall
+demonstration and user gate approval remain pending.
 
 ## 4. Global gates
 
@@ -271,7 +279,9 @@ Phases 7 through 11 are not authorized merely because they appear in this plan. 
 
 - Versioned hall label specification for the enabled demonstration set
 - Canonical `dining table`/`table` to `desk` mapping in the existing generic detector
-- Wall/dead-end evidence derived from the already approved local SegFormer wall label and corridor geometry
+- ADE20K indoor semantic segmentation with explicit dataset-aware surface mapping
+- Relative visible-floor extent plus corroborating wall evidence for wall/dead-end analysis
+- Dedicated stairs/level-change stop evidence without adding a wire enum
 - Configurable wall-confidence and corridor-coverage thresholds
 - Deterministic `WALL_OR_DEAD_END_AHEAD` risk rule using the frozen guidance and overlay contract
 - Health and degradation reporting that does not make the optional hall expansion a prerequisite for generic Walk Mode
@@ -282,6 +292,8 @@ Phases 7 through 11 are not authorized merely because they appear in this plan. 
 - Person, chair, bag, and desk detections use the existing normalized detection, tracking, overlay, and risk contracts.
 - A sufficiently confident wall spanning left, centre, and right forward corridors produces a stable `STOP` decision with reason `WALL_OR_DEAD_END_AHEAD`.
 - A side wall or low-confidence wall mask does not produce a false dead-end stop.
+- Centre stairs/level-change evidence produces `STOP` with reason `STAIRS_OR_LEVEL_CHANGE_AHEAD`.
+- Directional guidance is refused when the target side lacks sufficient positive floor evidence.
 - An unavailable segmentation model leaves the generic detector and Walk Mode operational and reports the hall expansion as degraded.
 - Clear-hall and ordinary obstacle fixtures measure false stops explicitly.
 - No outdoor class, floor-cable class, or unsupported custom label is advertised.

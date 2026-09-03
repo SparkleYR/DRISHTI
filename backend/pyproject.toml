@@ -3,6 +3,7 @@ testpaths = ["tests"]
 addopts = "-ra"
 markers = [
     "real_model: requires local YOLO11n and SegFormer weights plus CUDA",
+    "real_indoor: requires explicitly approved external controlled indoor frames",
     "real_ocr: requires the approved local Tesseract 5 runtime",
     "real_vlm: requires local Moondream2 weights plus CUDA",
 ]

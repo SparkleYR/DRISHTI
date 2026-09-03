@@ -74,16 +74,17 @@ def _hall_hazard_health(
         return ModuleHealth(
             status=ModuleStatus.READY,
             detail=(
-                "Indoor hall expansion ready: desk mapping and "
-                "wall/dead-end analysis."
+                "Indoor hall expansion ready: indoor object mapping, relative "
+                "free-space, stairs, and wall/dead-end analysis."
             ),
         )
     if detector.ready:
         return ModuleHealth(
             status=ModuleStatus.DEGRADED,
             detail=(
-                "Desk mapping remains available; wall/dead-end analysis is "
-                "degraded because segmentation is unavailable."
+                "Indoor object mapping remains available; free-space, stairs, "
+                "and wall/dead-end analysis are degraded because segmentation "
+                "is unavailable."
             ),
         )
     if segmenter.ready:

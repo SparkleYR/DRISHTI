@@ -6,7 +6,7 @@ from app.config import Settings
 from app.guidance.actions import build_guidance
 from app.perception.detector import DetectionCandidate
 from app.perception.tracking import TrackedDetection
-from app.risk.rules import ProposedDecision
+from app.risk.rules import ProposedDecision, select_action
 from app.risk.scoring import score_tracks
 from app.risk.state_machine import AlertStateMachine, StableDecision
 from app.schemas.walk import (
@@ -15,8 +15,9 @@ from app.schemas.walk import (
     GuidanceAction,
     ProximityBand,
     RiskLevel,
+    CorridorCosts,
 )
-from app.spatial.corridor import SpatialTrack
+from app.spatial.corridor import CorridorAnalysis, SpatialTrack
 from app.spatial.proximity import RelativeProximity
 
 
@@ -183,3 +184,52 @@ def test_risk_sensitivity_changes_score_without_exceeding_contract_bounds() -> N
     high = score_tracks([spatial], settings, risk_sensitivity=1.0)[0].score
 
     assert 0 <= low < high <= 1
+
+
+def corridor_fixture(*, right_floor_extent: float, stairs_ratio: float = 0.0) -> CorridorAnalysis:
+    return CorridorAnalysis(
+        tracks=[],
+        costs=CorridorCosts(left_cost=0.90, centre_cost=0.80, right_cost=0.20),
+        preferred=CorridorChoice.RIGHT,
+        walkable_choices=frozenset({CorridorChoice.RIGHT}),
+        uncertain_choices=frozenset(),
+        safe_polygons=[],
+        blocked_polygons=[],
+        uncertain_polygons=[],
+        wall_ratios=CorridorCosts(left_cost=0.80, centre_cost=0.0, right_cost=0.0),
+        floor_extents=CorridorCosts(
+            left_cost=0.0,
+            centre_cost=0.0,
+            right_cost=right_floor_extent,
+        ),
+        stairs_ratios=CorridorCosts(
+            left_cost=0.0,
+            centre_cost=stairs_ratio,
+            right_cost=0.0,
+        ),
+        wall_dead_end=False,
+    )
+
+
+def test_directional_guidance_requires_positive_free_space_extent() -> None:
+    settings = Settings(_env_file=None)
+
+    refused = select_action([], corridor_fixture(right_floor_extent=0.10), settings)
+    allowed = select_action([], corridor_fixture(right_floor_extent=0.80), settings)
+
+    assert refused.action == GuidanceAction.PAUSE_UNCLEAR
+    assert refused.reason_code == "CENTRE_BLOCKED_DIRECTION_UNCLEAR"
+    assert allowed.action == GuidanceAction.MOVE_RIGHT
+
+
+def test_stairs_stop_precedes_generic_corridor_blocking() -> None:
+    settings = Settings(_env_file=None)
+
+    decision = select_action(
+        [],
+        corridor_fixture(right_floor_extent=0.80, stairs_ratio=0.25),
+        settings,
+    )
+
+    assert decision.action == GuidanceAction.STOP
+    assert decision.reason_code == "STAIRS_OR_LEVEL_CHANGE_AHEAD"

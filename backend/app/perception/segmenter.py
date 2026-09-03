@@ -58,6 +58,7 @@ class SegFormerSegmenter:
         torch_module: Any,
         device: Any,
         device_name: str,
+        label_set: str,
         input_height: int,
         input_width: int,
     ) -> None:
@@ -66,6 +67,7 @@ class SegFormerSegmenter:
         self._torch = torch_module
         self._device = device
         self._device_name = device_name
+        self._label_set = label_set
         self._input_height = input_height
         self._input_width = input_width
         self._lock = Lock()
@@ -80,7 +82,7 @@ class SegFormerSegmenter:
 
     @property
     def detail(self) -> str:
-        return f"SegFormer-B0 Cityscapes ready on {self._device_name}."
+        return f"SegFormer-B0 {self._label_set} ready on {self._device_name}."
 
     def segment(self, image: np.ndarray) -> SegmentationFrame:
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -124,13 +126,12 @@ def load_segmenter(settings: Settings) -> Segmenter:
             "Segmentation path must remain inside the local models directory."
         )
 
-    required_files = {
-        "config.json",
-        "preprocessor_config.json",
-        "pytorch_model.bin",
-    }
-    if not model_path.is_dir() or not all(
-        (model_path / filename).is_file() for filename in required_files
+    metadata_files = {"config.json", "preprocessor_config.json"}
+    weight_files = {"model.safetensors", "pytorch_model.bin"}
+    if (
+        not model_path.is_dir()
+        or not all((model_path / filename).is_file() for filename in metadata_files)
+        or not any((model_path / filename).is_file() for filename in weight_files)
     ):
         return UnavailableSegmenter(
             f"Local SegFormer-B0 files are incomplete at {model_path}."
@@ -174,6 +175,7 @@ def load_segmenter(settings: Settings) -> Segmenter:
             torch_module=torch,
             device=device,
             device_name=device_name,
+            label_set=settings.segmentation_label_set,
             input_height=settings.segmentation_input_height,
             input_width=settings.segmentation_input_width,
         )

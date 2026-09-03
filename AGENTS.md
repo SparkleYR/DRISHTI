@@ -54,4 +54,17 @@ Do not silently resolve conflicts or make material architecture decisions. Recor
 
 ## Current gate
 
-Phases 0 through 8 are `COMPLETE`. Phase 9 is `IN_REVIEW`: the local Moondream2 snapshot-query endpoint, local-only assets, lazy per-request CUDA loading, bounded non-queueing execution, immediate unload, and isolation from the continuous Walk Loop are implemented; automated tests and the real RTX 4060 model/core-model coexistence check pass, while user gate approval remains pending. Phase 10 remains `IN_REVIEW`: deterministic recurring-hazard consolidation, expiry, versioned indoor hall routes, explainable accessibility scoring, local seed data, dashboard analytics, and automated checks are implemented; the controlled hall demonstration and user approval remain pending. Accessibility scores and VLM answers are advisory and must never become Walk Loop guidance. Phase 11 remains prohibited. Expo remains a bare-bones physical backend test harness; Android application work is being developed separately against the typed local API.
+Phases 0 through 7 are `COMPLETE`. Phase 8 is reopened as `IN_REVIEW` after the
+indoor Walk accuracy amendment: the local ADE20K segmenter, explicit indoor
+surface mapping, relative visible-floor evidence, stairs stop, expanded detector
+labels, conservative directional gating, and automated/offline CUDA checks are
+implemented. Approved controlled-frame replay, the repeated live hall check, and
+supplemental user gate approval remain pending. Phase 9 remains `IN_REVIEW`: the
+local Moondream2 snapshot-query endpoint and real RTX 4060 coexistence check pass,
+while user approval remains pending. Phase 10 remains `IN_REVIEW`: recurring
+hazards, expiry, versioned hall routes, explainable scoring, local seed data,
+dashboard analytics, and automated checks are implemented; the controlled hall
+demonstration and user approval remain pending. Accessibility scores and VLM
+answers are advisory and must never become Walk Loop guidance. Phase 11 remains
+prohibited. Expo remains a bare-bones backend test harness; Android application
+work is separate and is not part of the Walk accuracy amendment.

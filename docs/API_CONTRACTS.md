@@ -348,15 +348,29 @@ Before their owning phases, fields such as detections and surfaces return empty 
 
 ### Phase 8 indoor hall semantics
 
-Phase 8 does not change the frame-analysis response shape. The generic detector
-canonicalizes model labels `dining table` and `table` to the client-facing label
-`desk`; existing `person`, `chair`, and `bag` labels retain their meanings.
+Phase 8 and its walk-accuracy amendment do not change the frame-analysis
+response shape. The detector canonicalizes model labels `dining table` and
+`table` to client-facing `desk`, while backpack and handbag remain `bag`.
+Additional auditable indoor labels can appear through the existing free-form
+`DetectionResult.label` field.
+
+ADE20K semantic labels are token-normalized before mapping to the existing four
+`SurfaceKind` values. Indoor floor, rug/carpet, path, sidewalk, and pavement are
+`WALKABLE`; structural, furniture, person, vehicle, stairs, and level-change
+classes are `NON_WALKABLE`; genuine road remains `ROAD`; unmatched labels are
+`UNKNOWN`.
 
 A wall is semantic surface evidence, not a fabricated bounding-box detection.
-When confident `wall` pixels span the configured left, centre, and right forward
-corridors, the existing guidance contract returns `STOP` with reason code
-`WALL_OR_DEAD_END_AHEAD`. A side wall or low-confidence wall mask cannot emit that
-reason. No exact wall distance is asserted.
+`WALL_OR_DEAD_END_AHEAD` returns `STOP` only when the centre visible-floor extent
+is below the configured dead-end maximum, neither side has sufficient visible
+floor extent, and confident centre-wall pixels corroborate the result. Visible
+floor extent is a normalized image-space proportion in `[0,1]`, not distance or
+a guarantee of safe clearance. A side wall alone cannot emit this reason.
+
+Confident ADE20K `stairs`, `stairway`, `step`, or `escalator` evidence occupying
+the configured centre share returns `STOP` with reason code
+`STAIRS_OR_LEVEL_CHANGE_AHEAD`. Reason codes remain free-form strings, so this
+adds no enum or response-schema member.
 
 If segmentation is unavailable, `models.india_hazards` is `DEGRADED` and frame
 responses include both `segmentation` and `india_hazards` in `degraded_modules`.

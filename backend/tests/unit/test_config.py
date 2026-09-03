@@ -50,6 +50,23 @@ def test_phase_eight_desk_severity_is_configured() -> None:
     assert Settings(_env_file=None).risk_class_severities["desk"] == 0.80
 
 
+def test_indoor_segmentation_defaults_are_explicit() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.segmentation_label_set == "ADE20K"
+    assert settings.segmentation_model_path.name == "segformer-b0-ade20k"
+    assert settings.surface_cost_road_weight == 0.0
+
+
+def test_free_space_thresholds_must_increase() -> None:
+    with pytest.raises(ValidationError):
+        Settings(
+            _env_file=None,
+            freespace_dead_end_max=0.4,
+            freespace_side_open_min=0.3,
+        )
+
+
 def test_person_hazard_expiry_is_shorter_than_furniture_expiry() -> None:
     with pytest.raises(ValidationError):
         Settings(

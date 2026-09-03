@@ -34,6 +34,7 @@ def test_health_reports_phase_eight_hall_readiness(client: TestClient) -> None:
     assert payload["models"]["depth"]["status"] == "DEGRADED"
     assert payload["models"]["india_hazards"]["status"] == "READY"
     assert "wall/dead-end" in payload["models"]["india_hazards"]["detail"]
+    assert "free-space" in payload["models"]["india_hazards"]["detail"]
     assert payload["models"]["ocr"]["status"] == "READY"
     assert payload["models"]["vlm"]["status"] == "READY"
     assert all(

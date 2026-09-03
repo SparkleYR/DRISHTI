@@ -16,10 +16,16 @@ from app.schemas.walk import (
     SurfaceKind,
 )
 from app.spatial.proximity import RelativeProximity, estimate_relative_proximity
-from app.spatial.surfaces import semantic_kind_map
+from app.spatial.surfaces import (
+    HAZARD_SURFACE_TOKENS,
+    semantic_class_ids,
+    semantic_kind_map,
+)
 
 
 Polygon = list[tuple[float, float]]
+MIN_WALKABLE_RATIO = 0.25
+MIN_BLOCKING_SURFACE_RATIO = 0.20
 
 
 @dataclass(frozen=True)
@@ -41,6 +47,8 @@ class CorridorAnalysis:
     blocked_polygons: list[list[NormalizedPoint]]
     uncertain_polygons: list[list[NormalizedPoint]]
     wall_ratios: CorridorCosts
+    floor_extents: CorridorCosts
+    stairs_ratios: CorridorCosts
     wall_dead_end: bool
 
 
@@ -84,24 +92,36 @@ def analyze_corridors(
 
     surface_ratios: dict[CorridorChoice, dict[SurfaceKind, float]] = {}
     wall_ratios = {choice: 0.0 for choice in polygons}
+    floor_extents = {choice: 0.0 for choice in polygons}
+    stairs_ratios = {choice: 0.0 for choice in polygons}
     if segmentation is not None:
-        kind_map = semantic_kind_map(segmentation)
+        kind_map = semantic_kind_map(
+            segmentation,
+            label_set=settings.segmentation_label_set,
+        )
         for choice, polygon in polygons.items():
             ratios = _surface_ratios(kind_map, polygon)
             surface_ratios[choice] = ratios
             surface_cost = min(
                 1.0,
                 ratios[SurfaceKind.NON_WALKABLE]
-                + 0.45 * ratios[SurfaceKind.ROAD]
-                + 0.15 * ratios[SurfaceKind.UNKNOWN],
+                + settings.surface_cost_road_weight * ratios[SurfaceKind.ROAD]
+                + settings.surface_cost_unknown_weight * ratios[SurfaceKind.UNKNOWN],
             )
             costs[choice] = 1.0 - (1.0 - costs[choice]) * (1.0 - surface_cost)
-            wall_ratios[choice] = _semantic_label_ratio(
+            wall_ratios[choice] = _semantic_token_ratio(
                 segmentation,
                 polygon,
-                label="wall",
+                tokens=frozenset({"wall"}),
                 minimum_confidence=settings.wall_min_pixel_confidence,
             )
+            stairs_ratios[choice] = _semantic_token_ratio(
+                segmentation,
+                polygon,
+                tokens=HAZARD_SURFACE_TOKENS,
+                minimum_confidence=settings.wall_min_pixel_confidence,
+            )
+            floor_extents[choice] = _floor_extent(kind_map, polygon)
 
     corridor_costs = CorridorCosts(
         left_cost=costs[CorridorChoice.LEFT],
@@ -113,37 +133,66 @@ def analyze_corridors(
         centre_cost=wall_ratios[CorridorChoice.CENTRE],
         right_cost=wall_ratios[CorridorChoice.RIGHT],
     )
-    wall_dead_end = (
-        wall_corridor_ratios.centre_cost
-        >= settings.wall_centre_ratio_threshold
-        and wall_corridor_ratios.left_cost >= settings.wall_side_ratio_threshold
-        and wall_corridor_ratios.right_cost >= settings.wall_side_ratio_threshold
+    floor_corridor_extents = CorridorCosts(
+        left_cost=floor_extents[CorridorChoice.LEFT],
+        centre_cost=floor_extents[CorridorChoice.CENTRE],
+        right_cost=floor_extents[CorridorChoice.RIGHT],
     )
-    preferred = _preferred_corridor(costs, settings.corridor_clear_margin)
+    stairs_corridor_ratios = CorridorCosts(
+        left_cost=stairs_ratios[CorridorChoice.LEFT],
+        centre_cost=stairs_ratios[CorridorChoice.CENTRE],
+        right_cost=stairs_ratios[CorridorChoice.RIGHT],
+    )
+    wall_dead_end = (
+        floor_corridor_extents.centre_cost <= settings.freespace_dead_end_max
+        and floor_corridor_extents.left_cost < settings.freespace_side_open_min
+        and floor_corridor_extents.right_cost < settings.freespace_side_open_min
+        and wall_corridor_ratios.centre_cost >= settings.wall_centre_ratio_threshold
+    )
     walkable_choices = frozenset(
         choice
         for choice, ratios in surface_ratios.items()
-        if ratios[SurfaceKind.WALKABLE] >= 0.25
-        and ratios[SurfaceKind.UNKNOWN] + ratios[SurfaceKind.ROAD] < 0.5
+        if ratios[SurfaceKind.WALKABLE] >= MIN_WALKABLE_RATIO
     )
     uncertain_choices = frozenset(
         choice
         for choice in polygons
         if segmentation is None
-        or surface_ratios[choice][SurfaceKind.UNKNOWN]
-        + surface_ratios[choice][SurfaceKind.ROAD]
-        >= 0.5
+        or (
+            surface_ratios[choice][SurfaceKind.WALKABLE] < MIN_WALKABLE_RATIO
+            and surface_ratios[choice][SurfaceKind.NON_WALKABLE]
+            < MIN_BLOCKING_SURFACE_RATIO
+        )
     )
+    preferred = _preferred_corridor(costs, settings.corridor_clear_margin)
+    if (
+        preferred == CorridorChoice.NONE
+        and CorridorChoice.CENTRE in walkable_choices
+        and costs[CorridorChoice.CENTRE] < settings.risk_centre_block_threshold
+    ):
+        preferred = CorridorChoice.CENTRE
     preferred_is_walkable = preferred in walkable_choices
     safe = (
         [_normalized_polygon(polygons[preferred])]
-        if preferred in polygons and preferred_is_walkable
+        if preferred in polygons
+        and preferred_is_walkable
+        and costs[preferred]
+        < (
+            settings.risk_centre_block_threshold
+            if preferred == CorridorChoice.CENTRE
+            else settings.risk_side_block_threshold
+        )
         else []
     )
     blocked = [
         _normalized_polygon(polygon)
         for choice, polygon in polygons.items()
-        if costs[choice] >= 0.5
+        if costs[choice]
+        >= (
+            settings.risk_centre_block_threshold
+            if choice == CorridorChoice.CENTRE
+            else settings.risk_side_block_threshold
+        )
     ]
     uncertain = [
         _normalized_polygon(polygon)
@@ -160,6 +209,8 @@ def analyze_corridors(
         blocked_polygons=blocked,
         uncertain_polygons=uncertain,
         wall_ratios=wall_corridor_ratios,
+        floor_extents=floor_corridor_extents,
+        stairs_ratios=stairs_corridor_ratios,
         wall_dead_end=wall_dead_end,
     )
 
@@ -269,29 +320,52 @@ def _surface_ratios(
     }
 
 
-def _semantic_label_ratio(
+def _semantic_token_ratio(
     segmentation: SegmentationFrame,
     polygon: Polygon,
     *,
-    label: str,
+    tokens: frozenset[str],
     minimum_confidence: float,
 ) -> float:
     height, width = segmentation.class_map.shape
+    mask = _polygon_mask((height, width), polygon)
+    values = mask == 1
+    total = max(1, int(np.count_nonzero(values)))
+    class_ids = semantic_class_ids(segmentation, tokens)
+    if not class_ids:
+        return 0.0
+    label_mask = np.isin(segmentation.class_map, tuple(class_ids))
+    confident = segmentation.confidence_map >= minimum_confidence
+    return float(np.count_nonzero(values & label_mask & confident)) / total
+
+
+def _floor_extent(kind_map: np.ndarray, polygon: Polygon) -> float:
+    """Median contiguous visible-floor extent from each corridor column's base."""
+    height, width = kind_map.shape
+    corridor_mask = _polygon_mask((height, width), polygon).astype(bool)
+    walkable = kind_map == list(SurfaceKind).index(SurfaceKind.WALKABLE)
+    extents: list[float] = []
+    for x in range(width):
+        corridor_rows = np.flatnonzero(corridor_mask[:, x])
+        if corridor_rows.size == 0:
+            continue
+        top = int(corridor_rows[0])
+        bottom = int(corridor_rows[-1])
+        run_length = 0
+        for y in range(bottom, top - 1, -1):
+            if not corridor_mask[y, x] or not walkable[y, x]:
+                break
+            run_length += 1
+        extents.append(run_length / max(1, bottom - top + 1))
+    return float(np.median(extents)) if extents else 0.0
+
+
+def _polygon_mask(shape: tuple[int, int], polygon: Polygon) -> np.ndarray:
+    height, width = shape
     pixel_polygon = np.asarray(
         [[x * (width - 1), y * (height - 1)] for x, y in polygon],
         dtype=np.int32,
     )
     mask = np.zeros((height, width), dtype=np.uint8)
     cv2.fillConvexPoly(mask, pixel_polygon, color=1)
-    values = mask == 1
-    total = max(1, int(np.count_nonzero(values)))
-    class_ids = {
-        class_id
-        for class_id, class_label in segmentation.id_to_label.items()
-        if class_label == label
-    }
-    if not class_ids:
-        return 0.0
-    label_mask = np.isin(segmentation.class_map, tuple(class_ids))
-    confident = segmentation.confidence_map >= minimum_confidence
-    return float(np.count_nonzero(values & label_mask & confident)) / total
+    return mask

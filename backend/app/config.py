@@ -64,10 +64,11 @@ class Settings(BaseSettings):
     detector_confidence_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
     detector_image_size: int = Field(default=640, ge=320, le=1280, multiple_of=32)
     segmentation_model_path: Path = (
-        PROJECT_ROOT / "models" / "segmentation" / "segformer-b0-cityscapes"
+        PROJECT_ROOT / "models" / "segmentation" / "segformer-b0-ade20k"
     )
+    segmentation_label_set: Literal["ADE20K", "CITYSCAPES"] = "ADE20K"
     segmentation_input_height: int = Field(default=512, ge=256, le=1024, multiple_of=32)
-    segmentation_input_width: int = Field(default=1024, ge=256, le=2048, multiple_of=32)
+    segmentation_input_width: int = Field(default=512, ge=256, le=2048, multiple_of=32)
     depth_model_path: Path = PROJECT_ROOT / "models" / "depth" / "model.pt"
 
     track_iou_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
@@ -86,6 +87,12 @@ class Settings(BaseSettings):
     wall_min_pixel_confidence: float = Field(default=0.60, ge=0.0, le=1.0)
     wall_centre_ratio_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
     wall_side_ratio_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
+    surface_cost_road_weight: float = Field(default=0.0, ge=0.0, le=1.0)
+    surface_cost_unknown_weight: float = Field(default=0.10, ge=0.0, le=1.0)
+    freespace_dead_end_max: float = Field(default=0.12, ge=0.0, le=1.0)
+    freespace_side_open_min: float = Field(default=0.30, ge=0.0, le=1.0)
+    direction_min_free_extent: float = Field(default=0.35, ge=0.0, le=1.0)
+    stairs_centre_ratio_threshold: float = Field(default=0.08, gt=0.0, le=1.0)
 
     recommended_capture_fps: float = Field(default=2.0, gt=0, le=5)
     max_image_width: int = Field(default=1280, ge=320, le=4096)
@@ -112,16 +119,26 @@ class Settings(BaseSettings):
         "car": 0.95,
         "bus": 1.0,
         "bench": 0.65,
+        "door": 0.80,
+        "suitcase": 0.65,
+        "umbrella": 0.55,
+        "potted plant": 0.70,
+        "couch": 0.75,
+        "bed": 0.80,
+        "tv": 0.45,
+        "refrigerator": 0.85,
+        "sink": 0.65,
+        "toilet": 0.75,
     }
-    risk_centre_block_threshold: float = Field(default=0.45, ge=0, le=1)
-    risk_side_block_threshold: float = Field(default=0.45, ge=0, le=1)
+    risk_centre_block_threshold: float = Field(default=0.40, ge=0, le=1)
+    risk_side_block_threshold: float = Field(default=0.40, ge=0, le=1)
     risk_critical_path_overlap: float = Field(default=0.60, ge=0, le=1)
     risk_critical_proximity: float = Field(default=0.70, ge=0, le=1)
     risk_critical_approach: float = Field(default=0.15, ge=0, le=1)
     alert_persistence_frames: int = Field(default=2, ge=1, le=10)
     alert_clear_frames: int = Field(default=3, ge=1, le=30)
     alert_cooldown_seconds: float = Field(default=3.0, ge=0, le=60)
-    decision_margin: float = Field(default=0.10, ge=0, le=1)
+    decision_margin: float = Field(default=0.15, ge=0, le=1)
 
     @model_validator(mode="after")
     def validate_thresholds(self) -> "Settings":
@@ -160,6 +177,15 @@ class Settings(BaseSettings):
             raise ValueError(
                 "wall_side_ratio_threshold must not exceed "
                 "wall_centre_ratio_threshold"
+            )
+        if not (
+            self.freespace_dead_end_max
+            < self.freespace_side_open_min
+            <= self.direction_min_free_extent
+        ):
+            raise ValueError(
+                "free-space thresholds must increase from dead-end to "
+                "directional guidance"
             )
         if not (
             self.proximity_far_threshold

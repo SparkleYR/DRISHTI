@@ -17,7 +17,7 @@ from app.schemas.walk import SurfaceKind
 MODEL_PATH = PROJECT_ROOT / "models" / "detector" / "yolo11n.pt"
 FIXTURE_PATH = PROJECT_ROOT / "test-media" / "phase2" / "ultralytics-bus.jpg"
 SEGMENTATION_PATH = (
-    PROJECT_ROOT / "models" / "segmentation" / "segformer-b0-cityscapes"
+    PROJECT_ROOT / "models" / "segmentation" / "segformer-b0-ade20k"
 )
 
 
@@ -41,6 +41,7 @@ def test_real_cuda_models_run_offline_through_api(
         models_dir=PROJECT_ROOT / "models",
         detector_model_path=MODEL_PATH,
         segmentation_model_path=SEGMENTATION_PATH,
+        segmentation_label_set="ADE20K",
         compute_device="CUDA",
     )
     detector = load_detector(settings)
@@ -49,6 +50,7 @@ def test_real_cuda_models_run_offline_through_api(
 
     assert detector.ready, detector.detail
     assert segmenter.ready, segmenter.detail
+    assert "ADE20K" in segmenter.detail
     assert os.environ["YOLO_OFFLINE"] == "True"
     assert image is not None
     detections = detector.detect(image)
@@ -65,20 +67,24 @@ def test_real_cuda_models_run_offline_through_api(
     Base.metadata.create_all(app.state.database_engine)
     with TestClient(app) as client:
         session = client.post("/api/v1/walk/sessions", json={}).json()
-        with FIXTURE_PATH.open("rb") as fixture:
-            response = client.post(
-                "/api/v1/walk/analyze",
-                data={
-                    "session_id": session["session_id"],
-                    "frame_id": "0",
-                    "captured_at": datetime.now(UTC).isoformat(),
-                    "rotation_degrees": "0",
-                },
-                files={"frame": ("bus.jpg", fixture, "image/jpeg")},
-            )
+        responses = []
+        for frame_id in range(5):
+            with FIXTURE_PATH.open("rb") as fixture:
+                responses.append(
+                    client.post(
+                        "/api/v1/walk/analyze",
+                        data={
+                            "session_id": session["session_id"],
+                            "frame_id": str(frame_id),
+                            "captured_at": datetime.now(UTC).isoformat(),
+                            "rotation_degrees": "0",
+                        },
+                        files={"frame": ("bus.jpg", fixture, "image/jpeg")},
+                    )
+                )
 
-    assert response.status_code == 200
-    payload = response.json()
+    assert all(response.status_code == 200 for response in responses)
+    payload = responses[-1].json()
     assert {item["label"] for item in payload["detections"]} >= {"person", "bus"}
     assert {item["kind"] for item in payload["surfaces"]} >= {
         SurfaceKind.WALKABLE,
@@ -86,4 +92,6 @@ def test_real_cuda_models_run_offline_through_api(
     }
     assert payload["timings"]["detection_ms"] >= 0
     assert payload["timings"]["segmentation_ms"] >= 0
+    timings = sorted(response.json()["timings"]["total_ms"] for response in responses)
+    assert timings[-1] <= 250.0
     assert "detector" not in payload["degraded_modules"]
