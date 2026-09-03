@@ -1,0 +1,86 @@
+<resources>
+    <string name="ready_prompt">चलना शुरू करने के लिए कहीं भी दो बार टैप करें।</string>
+    <string name="ready_hint">वॉल्यूम अप दृश्य का वर्णन करता है। वॉल्यूम डाउन आपातकाल है।</string>
+
+    <string name="state_ready">तैयार</string>
+    <string name="state_walking">चल रहे हैं</string>
+    <string name="state_caution">सावधान</string>
+    <string name="state_left">बाएँ</string>
+    <string name="state_right">दाएँ</string>
+    <string name="state_stop">रुकें</string>
+    <string name="state_paused">रुका हुआ</string>
+    <string name="state_sos">आपातकाल</string>
+    <string name="state_reading">पढ़ रहे हैं</string>
+    <string name="state_describing">दृश्य</string>
+
+    <string name="guide_caution">पास में बाधा है।</string>
+    <string name="guide_move_left">रास्ता बंद है। थोड़ा बाएँ चलें।</string>
+    <string name="guide_move_right">रास्ता बंद है। थोड़ा दाएँ चलें।</string>
+    <string name="guide_stop">रुकें। सामने बाधा है।</string>
+    <string name="guide_pause_unclear">रास्ता साफ़ नहीं है। कृपया रुकें।</string>
+    <string name="guide_wall">रुकें। आगे दीवार या बंद रास्ता है।</string>
+    <string name="guide_vehicle">रुकें। सामने वाहन आ रहा है।</string>
+    <string name="guide_all_blocked">रुकें। हर तरफ़ रास्ता बंद है।</string>
+    <string name="guide_surface_uncertain">रास्ता साफ़ नहीं है। ज़मीन अनिश्चित है।</string>
+
+    <string name="conn_lost">कनेक्शन टूट गया।</string>
+    <string name="conn_restored">कनेक्शन वापस आ गया।</string>
+    <string name="walk_started">चलना शुरू।</string>
+    <string name="walk_stopped">चलना बंद।</string>
+    <string name="surface_degraded">सतह पहचान कमज़ोर है।</string>
+    <string name="models_not_ready">सहायक तैयार नहीं है। फिर कोशिश हो रही है।</string>
+    <string name="backend_ready">सर्वर तैयार है।</string>
+    <string name="backend_degraded">सर्वर कमज़ोर स्थिति में है।</string>
+    <string name="backend_unreachable">सर्वर से संपर्क नहीं। सेटिंग में पता जाँचें।</string>
+
+    <string name="explore_listening">पाठ पढ़ रहे हैं। स्थिर रहें।</string>
+    <string name="explore_none">कोई पाठ नहीं मिला।</string>
+    <string name="explore_possible">संभावित पाठ: %1$s</string>
+    <string name="explore_route">रूट %1$s।</string>
+    <string name="explore_busy">रीडर व्यस्त है। फिर कोशिश करें।</string>
+    <string name="explore_unavailable">पाठ पढ़ना उपलब्ध नहीं है।</string>
+    <string name="explore_card_title">पढ़ा गया पाठ</string>
+    <string name="explore_quality_high">स्पष्ट पाठ</string>
+    <string name="explore_quality_low">अनिश्चित पाठ</string>
+    <string name="explore_quality_none">कोई पठनीय पाठ नहीं</string>
+    <string name="explore_routes_label">रूट नंबर</string>
+
+    <!-- VLM दृश्य वर्णन / प्रश्न-उत्तर (माँग पर, धीमा स्थानीय मॉडल) -->
+    <string name="vlm_prompt_ask">आप दृश्य के बारे में क्या जानना चाहेंगे?</string>
+    <string name="vlm_no_speech">मैं समझ नहीं पाया। सामने क्या है, बता रहा हूँ।</string>
+    <string name="vlm_default_prompt">मेरे ठीक सामने जो है उसका संक्षेप में वर्णन करें।</string>
+    <string name="vlm_working">काम हो रहा है। स्थिर रहें।</string>
+    <string name="vlm_unavailable">दृश्य वर्णन अभी उपलब्ध नहीं है।</string>
+    <string name="vlm_busy">दृश्य सहायक व्यस्त है। फिर कोशिश करें।</string>
+    <string name="vlm_timeout">इसमें बहुत समय लगा। फिर कोशिश करें।</string>
+    <string name="vlm_mic_denied">दृश्य के बारे में पूछने के लिए माइक्रोफ़ोन की अनुमति चाहिए।</string>
+    <string name="vlm_card_title">दृश्य</string>
+
+    <string name="reason_wall">आगे दीवार या बंद रास्ता</string>
+    <string name="reason_vehicle">आपके रास्ते में वाहन आ रहा है</string>
+    <string name="reason_all_blocked">हर तरफ़ रास्ता बंद</string>
+    <string name="reason_centre_blocked_side">सामने रास्ता बंद, किनारा साफ़ है</string>
+    <string name="reason_centre_blocked_unclear">सामने रास्ता बंद, दिशा अस्पष्ट</string>
+    <string name="reason_surface_uncertain">ज़मीन अनिश्चित है</string>
+    <string name="reason_obstacle_nearby">पास में बाधा</string>
+    <string name="reason_obstacle_ahead">सीधे सामने बाधा</string>
+    <string name="reason_low_risk">छोटी बाधा पर नज़र है</string>
+
+    <string name="diag_tts_ok">आवाज़ तैयार</string>
+    <string name="diag_tts_fail">आवाज़: %1$s</string>
+    <string name="diag_preview_off">प्रीव्यू बंद</string>
+
+    <string name="hazard_prompt">यहाँ बाधा दर्ज करने के लिए दो बार टैप करें। फ़ोटो जोड़ने के लिए देर तक दबाएँ।</string>
+    <string name="hazard_sent">बाधा दर्ज हो गई। धन्यवाद।</string>
+    <string name="hazard_failed">बाधा दर्ज नहीं हो सकी।</string>
+    <string name="hazard_cancelled">बाधा रिपोर्ट रद्द।</string>
+    <string name="nearby_hazard">पास में दर्ज बाधा: %1$s।</string>
+
+    <string name="sos_active">आपातकाल। मुझे मदद चाहिए।</string>
+    <string name="sos_cancelled">आपातकाल रद्द।</string>
+    <string name="sos_exit_hint">आपातकाल रद्द करने के लिए तीन बार फिर दो बार टैप करें।</string>
+
+    <string name="screen_blanked">स्क्रीन बंद। सहायक चालू है।</string>
+    <string name="screen_unblanked">स्क्रीन चालू।</string>
+    <string name="repeat_hint">कोई नई जानकारी नहीं।</string>
+</resources>

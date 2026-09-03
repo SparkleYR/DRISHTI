@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DRISHTI is a local-only app: it talks exclusively to a user-configured backend
+  on the private LAN, which has no TLS certificate. Cleartext to private-range
+  hosts is therefore permitted by design; the app makes no internet calls.
+  (See docs/DECISIONS.md D-008, AGENTS.md "Mandatory runtime boundaries".)
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
