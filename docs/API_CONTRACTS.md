@@ -131,6 +131,7 @@ type ErrorCode =
   | "FRAME_TOO_OLD"
   | "FRAME_SUPERSEDED"
   | "MODEL_NOT_READY"
+  | "REQUEST_TIMEOUT"
   | "DATABASE_UNAVAILABLE"
   | "INVALID_STATUS_TRANSITION"
   | "CONFLICT"
@@ -741,3 +742,51 @@ Invariants:
   Mode readiness.
 - If the single OCR worker is already active, another Explore request returns a
   retryable `CONFLICT`; requests do not accumulate in a queue.
+
+## 14. Local VLM snapshot query
+
+The VLM endpoint is user-triggered and is never called by the continuous Walk
+Loop. It loads Moondream2 from local files on CUDA for one request, releases the
+model and CUDA cache afterward, and never stores the submitted image.
+
+### `POST /api/v1/vlm/query`
+
+Content type: `multipart/form-data`
+
+| Part | Type | Rules |
+|---|---|---|
+| `prompt` | string | Required, trimmed, 1–500 characters |
+| `frame` | JPEG image | Optional; exactly one of `frame` or `image_base64` is required |
+| `image_base64` | string | Optional raw base64 or `data:image/jpeg;base64,...`; exactly one image input is required |
+
+```ts
+interface VLMTimings {
+  decode_ms: number;
+  load_ms: number;
+  inference_ms: number;
+  unload_ms: number;
+  total_ms: number;
+}
+
+interface VLMQueryResponse {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  model: "moondream2";
+  text: string;
+  timings: VLMTimings;
+}
+```
+
+Invariants:
+
+- Inference uses the local CUDA model directory only; runtime downloads and
+  cloud calls are prohibited.
+- Only one VLM request may execute. A second request receives retryable
+  `CONFLICT`; requests never accumulate.
+- A timed-out request receives retryable `REQUEST_TIMEOUT`; its worker remains
+  reserved until the underlying inference finishes and releases CUDA memory.
+- Missing model files, unavailable CUDA, insufficient safe free VRAM, CUDA OOM,
+  or model failure return retryable `MODEL_NOT_READY` without disabling Walk
+  Mode.
+- The response contains generated text only; it is descriptive assistance, not
+  a mobility-safety decision.

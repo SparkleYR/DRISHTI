@@ -2,6 +2,7 @@
 .venv/
 .python/
 .uv-cache/
+.cache/
 .tools/
 __pycache__/
 *.py[cod]
@@ -32,6 +33,8 @@ logs/
 models/**/*.pt
 models/**/*.bin
 models/**/*.safetensors
+models/vlm/moondream2/**
+models/vlm/starmie-v1/**
 !models/**/README.md
 
 # Editors and operating systems

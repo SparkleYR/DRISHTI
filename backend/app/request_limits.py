@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from starlette.formparsers import MultiPartParser
 from starlette.types import Message, Receive, Scope, Send
 
 from app.errors import ApiErrorResponse, ErrorCode, ErrorDetail, utc_now
@@ -19,7 +18,6 @@ class AnalyzeBodyLimitMiddleware:
         self.app = app
         self.max_body_bytes = max_body_bytes
         self.paths = paths or {"/api/v1/walk/analyze"}
-        MultiPartParser.spool_max_size = max_body_bytes + 1
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or scope.get("path") not in self.paths:

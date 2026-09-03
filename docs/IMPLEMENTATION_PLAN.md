@@ -30,11 +30,11 @@ This workflow is backend-first. The production Android application will be imple
 | 6 | Hazard Reporting and Local Dashboard Loop | Core MVP | `COMPLETE` |
 | 7 | Explore Mode and OCR | Optional expansion | `COMPLETE` |
 | 8 | Indoor Campus Hazard Expansion | Optional expansion | `COMPLETE` |
-| 9 | Optional Local Vision-Language Model | Optional expansion | `SKIPPED` |
+| 9 | Optional Local Vision-Language Model | Optional expansion | `IN_REVIEW` |
 | 10 | Recurring Hazards and Accessibility Scoring | Optional expansion | `IN_REVIEW` |
 | 11 | Reliability and Product Hardening | Optional expansion | `NOT_STARTED` |
 
-Phases 0 through 8 passed their automated and required physical checks, and their gates were approved. Phase 9 is explicitly omitted: no VLM is required for the indoor hall demonstration. Phase 10 implementation and automated checks are complete; the controlled hall demonstration and user gate approval remain pending.
+Phases 0 through 8 passed their automated and required physical checks, and their gates were approved. Phase 9 implementation, automated checks, and the real RTX 4060 model/core-model coexistence check are complete; user gate approval remains pending. Phase 10 implementation and automated checks are complete; its controlled hall demonstration and user gate approval remain pending.
 
 ## 4. Global gates
 
@@ -292,9 +292,9 @@ Phases 7 through 11 are not authorized merely because they appear in this plan. 
 
 **Goal:** Answer narrow, on-demand scene questions locally without affecting real-time safety processing.
 
-**Deliverables:** Separately loaded quantized VLM, narrow prompt contract, timeout, resource limits, and lower compute priority than Walk Mode.
+**Deliverables:** Local Moondream2 model files, typed `POST /api/v1/vlm/query` multipart contract with JPEG-file or base64 input, one non-queueing worker, timeout, CUDA free-memory guard, lazy per-request loading, and immediate unload/cache release. The Android application consumes the contract separately; Expo receives no Phase 9 product work.
 
-**Acceptance criteria:** No cloud call; timeout is safe; memory use is stable; real-time detection continues during Explore processing. Omit the phase if these checks fail.
+**Acceptance criteria:** The endpoint returns an accurate natural-language answer for a controlled image and prompt; file and base64 payloads validate against the typed contract; runtime inference uses local files and CUDA only; submitted snapshots are never persisted; timeout and concurrent-request behavior are safe; insufficient VRAM degrades only the VLM request; the core detector and Walk Mode remain available before, during, and after VLM work without CUDA OOM. Phase 9 remains `IN_REVIEW` until the real-model CUDA check and user gate approval pass.
 
 ### Phase 10 — Recurring Hazards and Accessibility Scoring
 

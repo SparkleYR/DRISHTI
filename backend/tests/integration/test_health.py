@@ -35,6 +35,7 @@ def test_health_reports_phase_eight_hall_readiness(client: TestClient) -> None:
     assert payload["models"]["india_hazards"]["status"] == "READY"
     assert "wall/dead-end" in payload["models"]["india_hazards"]["detail"]
     assert payload["models"]["ocr"]["status"] == "READY"
+    assert payload["models"]["vlm"]["status"] == "READY"
     assert all(
         model["status"] == "UNAVAILABLE"
         for name, model in payload["models"].items()
@@ -46,6 +47,7 @@ def test_health_reports_phase_eight_hall_readiness(client: TestClient) -> None:
             "depth",
             "india_hazards",
             "ocr",
+            "vlm",
         }
     )
     assert payload["server_time"].endswith("Z")
@@ -67,6 +69,24 @@ def test_openapi_exposes_only_approved_phase_ten_routes(client: TestClient) -> N
             "/api/v1/dashboard/summary",
             "/api/v1/dashboard/accessibility",
         "/api/v1/explore",
+        "/api/v1/vlm/query",
+    }
+
+
+def test_openapi_documents_the_phase_nine_vlm_contract(
+    client: TestClient,
+) -> None:
+    openapi = client.get("/openapi.json").json()
+    operation = openapi["paths"]["/api/v1/vlm/query"]["post"]
+    body_schema = operation["requestBody"]["content"]["multipart/form-data"]["schema"]
+    body_model_name = body_schema["$ref"].rsplit("/", 1)[-1]
+    body_model = openapi["components"]["schemas"][body_model_name]
+
+    assert set(body_model["required"]) == {"prompt"}
+    assert set(body_model["properties"]) == {"frame", "image_base64", "prompt"}
+    assert body_model["properties"]["prompt"]["maxLength"] == 500
+    assert operation["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/VLMQueryResponse"
     }
 
 

@@ -8,6 +8,7 @@ from app.db.session import check_database
 from app.perception.detector import Detector
 from app.perception.segmenter import Segmenter
 from app.explore.ocr import OCRReader
+from app.explore.local_vlm import VLMEngine
 from app.schemas.common import utc_now
 from app.schemas.health import (
     ComputeDevice,
@@ -25,12 +26,11 @@ router = APIRouter(prefix="/api/v1", tags=["health"])
 
 
 def model_health(
-    detector: Detector, segmenter: Segmenter, ocr_reader: OCRReader
+    detector: Detector,
+    segmenter: Segmenter,
+    ocr_reader: OCRReader,
+    vlm_engine: VLMEngine,
 ) -> ModelHealth:
-    unavailable = ModuleHealth(
-        status=ModuleStatus.UNAVAILABLE,
-        detail="Not implemented in Phase 2.",
-    )
     return ModelHealth(
         detector=ModuleHealth(
             status=ModuleStatus.READY if detector.ready else ModuleStatus.UNAVAILABLE,
@@ -57,7 +57,12 @@ def model_health(
             else ModuleStatus.UNAVAILABLE,
             detail=ocr_reader.detail,
         ),
-        vlm=unavailable,
+        vlm=ModuleHealth(
+            status=ModuleStatus.READY
+            if vlm_engine.ready
+            else ModuleStatus.UNAVAILABLE,
+            detail=vlm_engine.detail,
+        ),
     )
 
 
@@ -101,6 +106,7 @@ def health(request: Request) -> HealthResponse:
     detector: Detector = request.app.state.detector
     segmenter: Segmenter = request.app.state.segmenter
     ocr_reader: OCRReader = request.app.state.ocr_reader
+    vlm_engine: VLMEngine = request.app.state.vlm_engine
     try:
         check_database(request.app.state.database_engine)
         database = ModuleHealth(status=ModuleStatus.READY)
@@ -120,7 +126,7 @@ def health(request: Request) -> HealthResponse:
             selected_device=ComputeDevice(settings.compute_device),
             device_name=settings.compute_device_name,
         ),
-        models=model_health(detector, segmenter, ocr_reader),
+        models=model_health(detector, segmenter, ocr_reader, vlm_engine),
         database=database,
         walk_mode_available=detector.ready,
     )

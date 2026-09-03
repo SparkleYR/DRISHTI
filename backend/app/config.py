@@ -43,6 +43,19 @@ class Settings(BaseSettings):
     explore_max_image_width: int = Field(default=2048, ge=320, le=4096)
     explore_max_image_bytes: int = Field(default=8 * 1024 * 1024, ge=1024)
     explore_max_image_pixels: int = Field(default=8_388_608, ge=1024)
+    vlm_model_path: Path = PROJECT_ROOT / "models" / "vlm" / "moondream2"
+    vlm_tokenizer_path: Path = (
+        PROJECT_ROOT / "models" / "vlm" / "starmie-v1" / "tokenizer.json"
+    )
+    vlm_modules_cache: Path = (
+        PROJECT_ROOT / ".cache" / "huggingface" / "modules"
+    )
+    vlm_timeout_seconds: float = Field(default=45.0, ge=1.0, le=180.0)
+    vlm_min_free_vram_mb: int = Field(default=4600, ge=1024, le=16_384)
+    vlm_max_new_tokens: int = Field(default=128, ge=16, le=512)
+    vlm_max_image_width: int = Field(default=1280, ge=320, le=4096)
+    vlm_max_image_bytes: int = Field(default=8 * 1024 * 1024, ge=1024)
+    vlm_max_image_pixels: int = Field(default=8_388_608, ge=1024)
     compute_device: Literal["CUDA", "CPU", "NONE"] = "CUDA"
     compute_device_name: str | None = "NVIDIA GeForce RTX 4060 Laptop GPU"
 

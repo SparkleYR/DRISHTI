@@ -4,7 +4,7 @@ DRISHTI is a local-only accessibility prototype composed of a FastAPI service wi
 
 ## Current scope
 
-Phases 0 through 8 are complete. Phase 9 is intentionally skipped. Phase 10 recurring indoor hazards and explainable accessibility scoring is implemented and awaiting its controlled hall review. The repository currently provides:
+Phases 0 through 8 are complete. Phase 9 local VLM integration is implemented and in review. Phase 10 recurring indoor hazards and explainable accessibility scoring is implemented and awaiting its controlled hall review. The repository currently provides:
 
 - Local backend configuration, structured logging, health reporting, and SQLite/Alembic initialization
 - An in-memory walking-session API and a typed multipart JPEG analysis endpoint with YOLO11n detections
@@ -22,6 +22,8 @@ Phases 0 through 8 are complete. Phase 9 is intentionally skipped. Phase 10 recu
   route-number, confidence, and no-text results
 - A minimal Expo **Read sign once** control for physically checking the Explore
   contract without turning Expo into a production client
+- A typed, on-demand local Moondream2 snapshot-query API with file/base64 input,
+  a non-queueing worker, timeout, CUDA free-memory guard, and immediate unload
 - Indoor hall desk mapping plus conservative wall/dead-end awareness using the
   existing local detector, segmentation, corridor, overlay, and risk contracts
 - Deterministic same-category, same-map duplicate consolidation with preserved
@@ -35,7 +37,7 @@ Phases 0 through 8 are complete. Phase 9 is intentionally skipped. Phase 10 recu
 - Idempotent local hall seed data for demonstrating recurrence and resolution
 - Shared TypeScript health, walking, hazard, dashboard, geometry, overlay, and error contracts
 
-Monocular depth, production mobile behavior, a VLM, unvalidated outdoor India-specific detection, and online maps remain intentionally absent. The campus image is not yet supplied, so the dashboard uses versioned normalized coordinates on a neutral local reference plane. Accessibility scores are operational summaries, not navigation instructions or safety certifications. DRISHTI never claims exact distance or that a scene or crossing is safe.
+Monocular depth, production mobile behavior in Expo, unvalidated outdoor India-specific detection, and online maps remain intentionally absent. The campus image is not yet supplied, so the dashboard uses versioned normalized coordinates on a neutral local reference plane. Accessibility scores and VLM answers are advisory descriptions, not navigation instructions or safety certifications. DRISHTI never claims exact distance or that a scene or crossing is safe.
 
 ## Prerequisites
 
@@ -76,6 +78,14 @@ Phase 7 uses the ignored local runtime at
 `.tools\Tesseract-OCR\tesseract.exe` by default. It must contain
 `tessdata\eng.traineddata`. The backend validates both at startup and degrades
 only Explore Mode if OCR is unavailable.
+
+Phase 9 uses the Apache-2.0 `vikhyatk/moondream2` release pinned to
+`2025-06-21`. Download it during development into
+`models\vlm\moondream2`, and download `moondream/starmie-v1`'s
+`tokenizer.json` into `models\vlm\starmie-v1`. Backend runtime uses
+`local_files_only`, a repository-local trusted-code cache, and offline
+environment flags; it never downloads model files. The VLM is loaded only for
+an explicit snapshot request and is unloaded before the response is returned.
 
 ## Initialize SQLite
 
@@ -157,6 +167,17 @@ camera-derived indoor localization.
 
 Follow [docs/PHASE10_DEMO.md](docs/PHASE10_DEMO.md) for the controlled judge
 walkthrough and manual acceptance checks.
+
+## Query the local VLM
+
+Send one JPEG snapshot and prompt as multipart form data:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/api/v1/vlm/query -F "prompt=What large vehicle is visible?" -F "frame=@test-media/phase2/ultralytics-bus.jpg;type=image/jpeg"
+```
+
+The Android client may alternatively send `image_base64`. Do not invoke this
+endpoint from the continuous camera loop.
 
 ## Verify Phase 10
 

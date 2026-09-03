@@ -14,6 +14,7 @@ from app.config import Settings
 from app.db.models import Base
 from app.main import create_app
 from app.explore.ocr import OCRResult
+from app.explore.local_vlm import VLMResult
 from app.perception.detector import DetectionCandidate
 from app.perception.segmenter import SegmentationFrame
 
@@ -72,6 +73,33 @@ class ReadyTestOCR:
         return self.result
 
 
+class ReadyTestVLM:
+    def __init__(self, text: str = "A bus is visible in front of the camera.") -> None:
+        self.text = text
+        self.call_count = 0
+        self.unload_count = 0
+
+    @property
+    def ready(self) -> bool:
+        return True
+
+    @property
+    def detail(self) -> str:
+        return "Test local VLM ready for on-demand use."
+
+    def query(self, _image: np.ndarray, _prompt: str) -> VLMResult:
+        self.call_count += 1
+        return VLMResult(
+            text=self.text,
+            load_ms=1.0,
+            inference_ms=2.0,
+            unload_ms=0.5,
+        )
+
+    def unload(self) -> None:
+        self.unload_count += 1
+
+
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
     return Settings(
@@ -90,6 +118,7 @@ def client(settings: Settings) -> Iterator[TestClient]:
         detector_override=ReadyTestDetector(),
         segmenter_override=ReadyTestSegmenter(),
         ocr_override=ReadyTestOCR(),
+        vlm_override=ReadyTestVLM(),
     )
     Base.metadata.create_all(app.state.database_engine)
     with TestClient(app) as test_client:

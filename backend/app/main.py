@@ -14,6 +14,7 @@ from app.api.hazards import router as hazards_router
 from app.api.dashboard import router as dashboard_router
 from app.api.explore import router as explore_router
 from app.api.walk import router as walk_router
+from app.api.vlm import router as vlm_router
 from app.config import Settings, get_settings
 from app.db.session import check_database, create_database_engine
 from app.errors import install_error_handlers
@@ -21,6 +22,12 @@ from app.logging_config import configure_logging
 from app.hazards.service import HazardService
 from app.explore.executor import ExploreExecutor
 from app.explore.ocr import OCRReader, UnavailableOCRReader, load_ocr_reader
+from app.explore.local_vlm import (
+    VLMEngine,
+    UnavailableVLMEngine,
+    load_vlm_engine,
+)
+from app.explore.vlm_executor import VLMExecutor
 from app.perception.detector import Detector, UnavailableDetector, load_detector
 from app.perception.segmenter import Segmenter, UnavailableSegmenter, load_segmenter
 from app.perception.tracking import TrackingSessionStore
@@ -39,6 +46,7 @@ def create_app(
     detector_override: Detector | None = None,
     segmenter_override: Segmenter | None = None,
     ocr_override: OCRReader | None = None,
+    vlm_override: VLMEngine | None = None,
 ) -> FastAPI:
     settings = settings_override or get_settings()
     configure_logging(settings.log_level, settings.log_file)
@@ -56,12 +64,17 @@ def create_app(
             app.state.segmenter = load_segmenter(settings)
         if ocr_override is None:
             app.state.ocr_reader = load_ocr_reader(settings)
+        if vlm_override is None:
+            app.state.vlm_engine = load_vlm_engine(settings)
         logger.info("Detector status: %s", app.state.detector.detail)
         logger.info("Segmentation status: %s", app.state.segmenter.detail)
         logger.info("OCR status: %s", app.state.ocr_reader.detail)
+        logger.info("VLM status: %s", app.state.vlm_engine.detail)
         logger.info("DRISHTI local backend started")
         yield
         app.state.explore_executor.shutdown()
+        app.state.vlm_executor.shutdown()
+        app.state.vlm_engine.unload()
         app.state.database_engine.dispose()
         logger.info("DRISHTI local backend stopped")
 
@@ -85,7 +98,11 @@ def create_app(
     app.state.ocr_reader = ocr_override or UnavailableOCRReader(
         "Local Tesseract has not completed startup."
     )
+    app.state.vlm_engine = vlm_override or UnavailableVLMEngine(
+        "Local Moondream2 has not completed startup."
+    )
     app.state.explore_executor = ExploreExecutor()
+    app.state.vlm_executor = VLMExecutor()
     app.state.tracking_sessions = TrackingSessionStore(
         iou_threshold=settings.track_iou_threshold,
         centre_distance_threshold=settings.track_centre_distance_threshold,
@@ -96,24 +113,40 @@ def create_app(
     max_analyze_body_bytes = (
         settings.max_image_bytes + settings.max_multipart_overhead_bytes
     )
-    MultiPartParser.spool_max_size = max_analyze_body_bytes + 1
+    max_evidence_body_bytes = (
+        settings.max_evidence_image_bytes + settings.max_multipart_overhead_bytes
+    )
+    max_explore_body_bytes = (
+        settings.explore_max_image_bytes + settings.max_multipart_overhead_bytes
+    )
+    max_vlm_body_bytes = (
+        ((settings.vlm_max_image_bytes + 2) // 3) * 4
+        + settings.max_multipart_overhead_bytes
+    )
+    MultiPartParser.spool_max_size = max(
+        max_analyze_body_bytes,
+        max_evidence_body_bytes,
+        max_explore_body_bytes,
+        max_vlm_body_bytes,
+    ) + 1
     app.add_middleware(
         AnalyzeBodyLimitMiddleware,
         max_body_bytes=max_analyze_body_bytes,
     )
     app.add_middleware(
         AnalyzeBodyLimitMiddleware,
-        max_body_bytes=(
-            settings.max_evidence_image_bytes + settings.max_multipart_overhead_bytes
-        ),
+        max_body_bytes=max_evidence_body_bytes,
         paths={"/api/v1/hazards"},
     )
     app.add_middleware(
         AnalyzeBodyLimitMiddleware,
-        max_body_bytes=(
-            settings.explore_max_image_bytes + settings.max_multipart_overhead_bytes
-        ),
+        max_body_bytes=max_explore_body_bytes,
         paths={"/api/v1/explore"},
+    )
+    app.add_middleware(
+        AnalyzeBodyLimitMiddleware,
+        max_body_bytes=max_vlm_body_bytes,
+        paths={"/api/v1/vlm/query"},
     )
     app.add_middleware(
         CORSMiddleware,
@@ -128,6 +161,7 @@ def create_app(
     app.include_router(hazards_router)
     app.include_router(dashboard_router)
     app.include_router(explore_router)
+    app.include_router(vlm_router)
     return app
 
 
