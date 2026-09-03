@@ -22,6 +22,7 @@
     <string name="guide_vehicle">रुकें। सामने वाहन आ रहा है।</string>
     <string name="guide_all_blocked">रुकें। हर तरफ़ रास्ता बंद है।</string>
     <string name="guide_surface_uncertain">रास्ता साफ़ नहीं है। ज़मीन अनिश्चित है।</string>
+    <string name="guide_stairs">रुकें। आगे सीढ़ियाँ या स्तर बदलाव है।</string>
 
     <string name="conn_lost">कनेक्शन टूट गया।</string>
     <string name="conn_restored">कनेक्शन वापस आ गया।</string>
@@ -65,6 +66,7 @@
     <string name="reason_obstacle_nearby">पास में बाधा</string>
     <string name="reason_obstacle_ahead">सीधे सामने बाधा</string>
     <string name="reason_low_risk">छोटी बाधा पर नज़र है</string>
+    <string name="reason_stairs">आगे सीढ़ियाँ या स्तर बदलाव</string>
 
     <string name="diag_tts_ok">आवाज़ तैयार</string>
     <string name="diag_tts_fail">आवाज़: %1$s</string>

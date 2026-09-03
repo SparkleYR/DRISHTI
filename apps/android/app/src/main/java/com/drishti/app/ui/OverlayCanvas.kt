@@ -10,6 +10,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import com.drishti.app.net.DetectionResult
 import com.drishti.app.net.DirectionArrow
 import com.drishti.app.net.DisplayColor
@@ -18,11 +24,13 @@ import com.drishti.app.net.OverlayContract
 import com.drishti.app.ui.theme.DrishtiGreen
 import com.drishti.app.ui.theme.DrishtiRed
 import com.drishti.app.ui.theme.DrishtiYellow
+import kotlin.math.roundToInt
 
 /**
  * Draws the backend overlay on top of the camera preview: safe / blocked /
- * uncertain regions, detection boxes coloured by display_color, and the
- * direction arrow. All geometry goes through the one [PreviewTransform].
+ * uncertain regions, detection boxes coloured by display_color, a small label
+ * chip per box ("<what> <confidence>%"), and the direction arrow. All geometry
+ * goes through the one [PreviewTransform].
  */
 @Composable
 fun OverlayCanvas(
@@ -32,6 +40,7 @@ fun OverlayCanvas(
     modifier: Modifier = Modifier,
 ) {
     if (geometry == null) return
+    val textMeasurer = rememberTextMeasurer()
     Canvas(modifier = modifier.fillMaxSize()) {
         val t = PreviewTransform(
             sourceWidth = geometry.sourceWidth.toFloat(),
@@ -66,12 +75,53 @@ fun OverlayCanvas(
                     pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(18f, 14f)) else null,
                 ),
             )
+            drawDetectionLabel(
+                measurer = textMeasurer,
+                text = "${d.label} ${(d.confidence * 100.0).roundToInt()}%",
+                box = r,
+                chipColor = color,
+                canvas = size,
+            )
         }
 
         overlay?.directionArrow?.let { arrow ->
             if (arrow != DirectionArrow.NONE) drawArrow(arrow, size)
         }
     }
+}
+
+private val LABEL_STYLE = TextStyle(fontSize = 9.sp, color = Color.Black)
+private const val CHIP_PAD_X = 5f
+private const val CHIP_PAD_Y = 3f
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawDetectionLabel(
+    measurer: TextMeasurer,
+    text: String,
+    box: PreviewTransform.Rect2,
+    chipColor: Color,
+    canvas: Size,
+) {
+    val maxChipWidth = canvas.width.coerceAtLeast(1f)
+    val layout = measurer.measure(
+        text = text,
+        style = LABEL_STYLE,
+        overflow = TextOverflow.Ellipsis,
+        maxLines = 1,
+        constraints = androidx.compose.ui.unit.Constraints(
+            maxWidth = (maxChipWidth - 2f * CHIP_PAD_X).toInt().coerceAtLeast(1),
+        ),
+    )
+    val chipW = layout.size.width + 2f * CHIP_PAD_X
+    val chipH = layout.size.height + 2f * CHIP_PAD_Y
+    // Anchor to the box top-left; sit the chip just above the box, or just
+    // inside it when there is no room above, and never let it leave the canvas.
+    val left = box.left.coerceIn(0f, (canvas.width - chipW).coerceAtLeast(0f))
+    val top = when {
+        box.top - chipH >= 0f -> box.top - chipH
+        else -> box.top.coerceAtMost((canvas.height - chipH).coerceAtLeast(0f))
+    }
+    drawRect(color = chipColor, topLeft = Offset(left, top), size = Size(chipW, chipH))
+    drawText(layout, topLeft = Offset(left + CHIP_PAD_X, top + CHIP_PAD_Y))
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.fillPolygon(

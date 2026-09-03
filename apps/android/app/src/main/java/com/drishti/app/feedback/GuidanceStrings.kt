@@ -31,6 +31,7 @@ class GuidanceStrings(appContext: Context) {
             "APPROACHING_VEHICLE_CENTRE" -> ctx.getString(R.string.guide_vehicle)
             "ALL_CORRIDORS_BLOCKED" -> ctx.getString(R.string.guide_all_blocked)
             "CENTRE_SURFACE_UNCERTAIN" -> ctx.getString(R.string.guide_surface_uncertain)
+            "STAIRS_OR_LEVEL_CHANGE_AHEAD" -> ctx.getString(R.string.guide_stairs)
             else -> when (guidance.action) {
                 GuidanceAction.CLEAR -> null
                 GuidanceAction.CAUTION -> ctx.getString(R.string.guide_caution)
@@ -56,6 +57,7 @@ class GuidanceStrings(appContext: Context) {
             "CENTRE_BLOCKED_CLEARER_SIDE" -> ctx.getString(R.string.reason_centre_blocked_side)
             "CENTRE_BLOCKED_DIRECTION_UNCLEAR" -> ctx.getString(R.string.reason_centre_blocked_unclear)
             "CENTRE_SURFACE_UNCERTAIN" -> ctx.getString(R.string.reason_surface_uncertain)
+            "STAIRS_OR_LEVEL_CHANGE_AHEAD" -> ctx.getString(R.string.reason_stairs)
             "OBSTACLE_NEARBY" -> ctx.getString(R.string.reason_obstacle_nearby)
             "LOW_RISK_MONITORED" -> ctx.getString(R.string.reason_low_risk)
             "PATH_CLEAR" -> null

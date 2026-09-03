@@ -27,6 +27,7 @@
     <string name="guide_vehicle">Stop. Vehicle approaching ahead.</string>
     <string name="guide_all_blocked">Stop. Path blocked on all sides.</string>
     <string name="guide_surface_uncertain">Path unclear. Walking surface uncertain.</string>
+    <string name="guide_stairs">Stop. Steps or a level change ahead.</string>
 
     <!-- Connection + session -->
     <string name="conn_lost">Connection lost.</string>
@@ -73,6 +74,7 @@
     <string name="reason_obstacle_nearby">Obstacle nearby</string>
     <string name="reason_obstacle_ahead">Obstacle directly ahead</string>
     <string name="reason_low_risk">Minor obstacle being watched</string>
+    <string name="reason_stairs">Steps or a level change ahead</string>
 
     <!-- On-screen diagnostics line -->
     <string name="diag_tts_ok">voice ready</string>

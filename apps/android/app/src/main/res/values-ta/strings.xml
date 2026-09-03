@@ -22,6 +22,7 @@
     <string name="guide_vehicle">நில்லுங்கள். முன்னால் வாகனம் வருகிறது.</string>
     <string name="guide_all_blocked">நில்லுங்கள். எல்லா பக்கமும் பாதை அடைபட்டுள்ளது.</string>
     <string name="guide_surface_uncertain">பாதை தெளிவில்லை. தரை உறுதியில்லை.</string>
+    <string name="guide_stairs">நில்லுங்கள். முன்னால் படிகள் அல்லது மட்ட மாற்றம்.</string>
 
     <string name="conn_lost">இணைப்பு துண்டிக்கப்பட்டது.</string>
     <string name="conn_restored">இணைப்பு மீண்டும் வந்தது.</string>
@@ -65,6 +66,7 @@
     <string name="reason_obstacle_nearby">அருகில் தடை</string>
     <string name="reason_obstacle_ahead">நேராக முன்னால் தடை</string>
     <string name="reason_low_risk">சிறிய தடை கவனிக்கப்படுகிறது</string>
+    <string name="reason_stairs">முன்னால் படிகள் அல்லது மட்ட மாற்றம்</string>
 
     <string name="diag_tts_ok">குரல் தயார்</string>
     <string name="diag_tts_fail">குரல்: %1$s</string>
