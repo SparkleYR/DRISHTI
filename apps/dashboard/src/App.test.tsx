@@ -108,6 +108,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+  configurable: true,
+  value: () => null,
+});
+
 function jsonResponse(payload: unknown) {
   return { ok: true, status: 200, json: async () => payload };
 }
@@ -140,21 +145,23 @@ test("renders local overview, map marker, and verification queue", async () => {
   render(<App />);
 
   expect(screen.getByText("Loading local operations…")).toBeTruthy();
-  await waitFor(() => expect(screen.getByText("Verification and resolution")).toBeTruthy());
+  await waitFor(() => expect(screen.getByText("Hazard Verification Queue")).toBeTruthy());
   expect(screen.getAllByText("chair obstruction")).toHaveLength(2);
   expect(screen.getByText("Awaiting review")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "chair obstruction, NEW" })).toBeTruthy();
+  expect(screen.getByRole("img", { name: /Digital twin coordinate plot/ })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Verify" })).toBeTruthy();
-  expect(screen.getByText("Recurring hazards and route score")).toBeTruthy();
+  expect(screen.getByText("Accessibility Analytics & Digital Twin")).toBeTruthy();
+  expect(screen.getByText("Live Walk Loop & Stream Monitor")).toBeTruthy();
+  expect(screen.getByText("Ask → Lock → Guide")).toBeTruthy();
+  expect(screen.getByText("Edge Hardware & Model VRAM Manager")).toBeTruthy();
   expect(screen.getByText("72.5")).toBeTruthy();
-  expect(screen.getByText("−27.5 points")).toBeTruthy();
 });
 
 test("renders an understandable local synchronization failure", async () => {
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Connection refused")));
   render(<App />);
 
-  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Local sync issue"));
+  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Local synchronization issue"));
   expect(screen.getByRole("alert").textContent).toContain("Connection refused");
 });
 
