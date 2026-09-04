@@ -59,6 +59,13 @@ class LocateRoutingTest {
     }
 
     @Test
+    fun `conversational trailing clauses stripped`() {
+        assertEquals("towel", route("locate the towel I previously had"))
+        assertEquals("towel", route("find the towel I saw earlier"))
+        assertEquals("bag", route("where is the bag I left just now"))
+    }
+
+    @Test
     fun `trailing punctuation and filler stripped`() {
         assertEquals("main door", route("please find the main door."))
         assertEquals("stairs", route("guide me to the stairs that I passed"))

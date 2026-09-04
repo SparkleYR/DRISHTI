@@ -62,7 +62,7 @@ private val LOCATE_QUESTION_STARTS =
     listOf("what", "whats", "what's", "how", "why", "who", "is", "are", "do", "does", "can")
 
 private val LOCATE_TRAILING_CLAUSE =
-    Regex("""\s+(which|that|i had|i have|from earlier|earlier|before)\b.*""", RegexOption.IGNORE_CASE)
+    Regex("""\s+(i|which|that|from|earlier|before)\b.*""", RegexOption.IGNORE_CASE)
 
 /**
  * Pure routing helper for the "Ask" gesture: is a spoken phrase an
