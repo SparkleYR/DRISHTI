@@ -286,3 +286,95 @@ one coordinated change.
   target is on-screen; degrades gracefully when it is not.
 - No frame written to disk; landmark memory empty after `end` for a session.
 - Walk-loop p95 `total_ms` unchanged (landmark `observe` is O(detections)).
+
+---
+
+## 11. Amendment A — landmark memory must see the full COCO label set
+
+- Amendment version: `target-guidance/2.1.0`
+- Raised: 2026-09-04 after `target_name=blue bottle` returned 404 in the field
+- Status: **Proposed — needs D-078 sign-off**
+
+### Problem
+
+`LandmarkMemoryStore.observe()` is fed `detections: list[DetectionResult]` — the
+**risk-filtered `CANONICAL_LABELS` set** (19 classes: chair, door, bed, tv,
+couch, refrigerator, sink, toilet, bench, desk, bag, suitcase, umbrella, potted
+plant, bicycle, motorcycle, car, bus, person). Everything else YOLO11n detects is
+discarded in `canonicalize_detections` before it can be remembered.
+
+The things users actually ask an assistant to find — **bottle, cup, bowl, wine
+glass, laptop, cell phone, keyboard, mouse, remote, book, clock, vase,
+backpack, handbag, tie, scissors, teddy bear, toothbrush, hair drier,
+microwave, oven, toaster, dining table** — are all standard COCO classes and are
+all currently thrown away. For any of them the memory path is structurally
+unavailable and resolution falls to the Moondream2 fallback, whose unreliability
+on cluttered real scenes is the reason this redesign exists. Result: "find the
+blue bottle" → memory miss → VLM miss → 404, every time.
+
+### D-078 (proposed)
+
+The landmark buffer is populated from the **complete COCO detector output**, not
+the risk whitelist. The continuous risk engine and the AR overlay keep the
+existing 19-class filtered set unchanged (`HALL_HAZARD_LABELS_V1`, D-053 hold).
+One YOLO11n forward pass per frame; two label filterings of its raw output.
+
+### Backend changes
+
+1. **`app/perception/detector.py`**
+   - `canonicalize_detections(..., allowed_labels: frozenset[str] | None = CANONICAL_LABELS)`.
+     `None` → keep every finite, above-threshold box with its native COCO label
+     (still lower-cased, still `LABEL_ALIASES`-normalized). Box normalization,
+     clamping, and the `x1<x2 / y1<y2` guard are unchanged.
+   - `UltralyticsDetector.detect()` returns the risk set as today **and** exposes
+     the full set from the *same* `raw` list. Preferred shape: return a small
+     dataclass `DetectionSet(risk: list[DetectionCandidate], all: list[DetectionCandidate])`
+     from `detect()`, or add `detect_all()` that reuses a cached `raw` under the
+     existing single-worker lock. No second GPU inference.
+   - `UnavailableDetector` mirrors whichever shape is chosen.
+
+2. **`app/api/walk.py` `_process_accepted_frame`**
+   - Feed `landmark_memories.observe(...)` and the memory-backed re-acquire in
+     `TargetGuidanceSessionStore.step(...)` the **full** candidate list
+     (mapped to `DetectionResult` the same way the risk list is).
+   - `detections` returned in `FrameAnalysisResponse` and everything the risk
+     engine / overlay consume stay the **filtered** list. No contract change to
+     `FrameAnalysisResponse`.
+
+3. **`app/perception/landmark_memory.py` — resolver fuzziness (`resolve`)**
+   - Normalize the query: lower, collapse spaces, drop a leading article and a
+     leading colour word (`red|orange|yellow|green|blue|purple|pink|brown|black|
+     white|grey|gray|silver|gold`).
+   - Match order: exact label → query token ⊇ label token (`"blue bottle"` →
+     `bottle`) → label token ⊇ query token → synonym table. Extend the synonym
+     table for COCO: `phone↔cell phone`, `mobile↔cell phone`, `laptop↔laptop`,
+     `tv↔tv↔television`, `plant↔potted plant`, `sofa↔couch`, `fridge↔refrigerator`,
+     `bin↔(no class)`, `glass↔wine glass|cup`, `mug↔cup`, `remote control↔remote`,
+     `bottle↔bottle` (covers "water bottle").
+   - On multiple matches, most-recently-seen wins (unchanged).
+
+4. **`app/config.py`** — optional `landmark_full_coco: bool = True` kill-switch;
+   `landmark_memory_max` may want raising (`24 → 40`) since the candidate stream
+   is wider. Keep the TTL.
+
+5. **Not-found phrasing (`app/api/vlm.py`)** — when both memory and VLM miss,
+   the 404 `text` should distinguish "not a thing I can recognise" from "I just
+   don't see it right now", e.g.:
+   `"I can't find a <target> nearby. I can only guide you to things I can recognise."`
+   The Android client speaks this verbatim.
+
+### Still out of scope after this amendment
+
+Targets that are **not** COCO classes — *towel, bucket, charger, wallet, keys,
+water (as a substance), door handle, light switch* — remain Moondream2-fallback
+only, and an honest "I can't find a `<target>`" when the VLM misses. Closing that
+tail needs either a wider detector or reliable open-vocab grounding, which is a
+separate decision.
+
+### Acceptance delta
+
+- With a real bottle in the walk stream for ≥1 frame in the last 45 s, "find the
+  blue bottle" resolves `from MEMORY`, not `VLM`, and guidance proceeds.
+- `person` still excluded unless `landmark_allow_person`.
+- Walk-loop p95 `total_ms` unchanged (no second inference).
+- `FrameAnalysisResponse.detections` still carries only the 19-class set.
