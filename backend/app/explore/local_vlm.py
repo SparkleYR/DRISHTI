@@ -5,6 +5,7 @@ import inspect
 import math
 import os
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
@@ -246,13 +247,12 @@ class LazyMoondreamVLM:
                 unload_started = perf_counter()
                 self._loaded_model = None
                 if model is not None:
-                    del model
-                gc.collect()
-                torch.cuda.empty_cache()
-                try:
-                    torch.cuda.ipc_collect()
-                except RuntimeError:
-                    pass
+                    try:
+                        model.to("cpu")
+                    except Exception:  # noqa: BLE001 - best-effort VRAM eviction
+                        pass
+                model = None
+                _release_cuda_memory(torch)
                 unload_ms = (perf_counter() - unload_started) * 1000
 
             return output, load_ms, inference_ms, unload_ms
@@ -294,13 +294,47 @@ class LazyMoondreamVLM:
                 import torch
             except ImportError:
                 return
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                try:
-                    torch.cuda.ipc_collect()
-                except RuntimeError:
-                    pass
+            _release_cuda_memory(torch)
+
+
+def _release_cuda_memory(torch_module: object) -> None:
+    """Return a per-request Moondream2 load's VRAM to the driver.
+
+    Evicting the model to host memory (done by the caller) and ``del`` alone was
+    not enough in practice: the ``trust_remote_code`` model package keeps
+    module-level references, so freed cache blocks were never returned and the
+    next request tripped the free-VRAM guard. Drop the dynamically imported
+    Moondream modules so their globals release any CUDA tensors, then collect and
+    empty the allocator cache in a few passes (reference cycles can need more
+    than one).
+    """
+
+    for name in [
+        module_name
+        for module_name in list(sys.modules)
+        if "transformers_modules" in module_name
+        and "moondream" in module_name.lower()
+    ]:
+        sys.modules.pop(name, None)
+
+    try:
+        if torch_module.cuda.is_available():
+            torch_module.cuda.synchronize()
+    except Exception:  # noqa: BLE001
+        pass
+
+    for _ in range(3):
+        gc.collect()
+        try:
+            if torch_module.cuda.is_available():
+                torch_module.cuda.empty_cache()
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        torch_module.cuda.ipc_collect()
+    except (RuntimeError, AttributeError):
+        pass
 
 
 def load_vlm_engine(settings: Settings) -> VLMEngine:
