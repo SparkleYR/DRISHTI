@@ -29,7 +29,7 @@ data class DrishtiSettings(
     val hazardMapY: Float = 0.5f,
 ) {
     companion object {
-        const val DEFAULT_BACKEND_URL = "http://10.64.202.200:8000"
+        const val DEFAULT_BACKEND_URL = "http://10.111.36.200:8000"
     }
 }
 

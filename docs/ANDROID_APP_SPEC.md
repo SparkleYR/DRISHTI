@@ -59,7 +59,7 @@ on the private LAN.
 | minSdk / target / compile | 31 / 36 / 36 |
 | Build | AGP 9, Gradle 9.1, Kotlin 2.3, KTS |
 | Reference device | OnePlus CPH2767, Android 16 (API 36), 1272×2800 @ 560 dpi |
-| Backend (dev) | `http://10.64.202.200:8000` on the LAN; **editable in-app**, persisted |
+| Backend (dev) | `http://10.111.36.200:8000` on the LAN; **editable in-app**, persisted |
 
 Key libraries: CameraX (`camera-core/camera2/lifecycle/view`), Retrofit +
 OkHttp + `kotlinx-serialization-json`, `androidx.datastore:datastore-preferences`,
@@ -408,7 +408,7 @@ in Explore are spoken digit-by-digit with the localized "route"/"bus" prefix.
 ## 10. Build status (v1, 2026-09-03)
 
 All ten build-order steps are implemented and the app runs end-to-end on the
-OnePlus CPH2767 against the live backend at `http://10.64.202.200:8000`.
+OnePlus CPH2767 against the live backend at `http://10.111.36.200:8000`.
 
 | # | Area | State |
 |---|---|---|
