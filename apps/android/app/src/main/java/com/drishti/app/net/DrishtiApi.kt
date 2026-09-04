@@ -32,6 +32,7 @@ interface DrishtiApi {
         @Part("frame_id") frameId: RequestBody,
         @Part("captured_at") capturedAt: RequestBody,
         @Part("rotation_degrees") rotationDegrees: RequestBody,
+        @Part("heading_degrees") headingDegrees: RequestBody? = null,
     ): Response<FrameAnalysisResponse>
 
     @Multipart

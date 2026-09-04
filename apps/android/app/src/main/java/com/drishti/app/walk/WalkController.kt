@@ -314,6 +314,7 @@ class WalkController(
     private suspend fun analyze(jpeg: ByteArray, frameId: Int, capturedAt: Instant) {
         val id = sessionId ?: run { gate.finishRequestFailure(); return }
         val framePart = MultipartBody.Part.createFormData("frame", "frame-$frameId.jpg", jpeg.toRequestBody(jpegType))
+        val heading = gyro.currentHeadingDegrees()
         val result = apiCall {
             api.analyze(
                 frame = framePart,
@@ -321,6 +322,7 @@ class WalkController(
                 frameId = frameId.toString().toRequestBody(textType),
                 capturedAt = capturedAt.toString().toRequestBody(textType),
                 rotationDegrees = "0".toRequestBody(textType),
+                headingDegrees = heading?.let { "%.1f".format(it).toRequestBody(textType) },
             )
         }
         when (result) {

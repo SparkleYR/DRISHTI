@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import kotlin.math.PI
+import kotlin.math.roundToInt
 
 /**
  * Keeps a spatial cue pointing at the last-known hazard bearing while the user
@@ -35,6 +36,19 @@ class GyroSteering(context: Context) : SensorEventListener {
     }
 
     fun stop() = sensorManager.unregisterListener(this)
+
+    /**
+     * Absolute device heading (azimuth) in degrees, normalized to [0, 360).
+     * Sent with each walk frame so the backend can dead-reckon the bearing
+     * to an out-of-view guidance target (see TARGET_GUIDANCE_REDESIGN.md).
+     * Returns null when no rotation sensor is present.
+     */
+    fun currentHeadingDegrees(): Float? {
+        if (sensor == null) return null
+        var deg = Math.toDegrees(currentYaw.toDouble()).toFloat() % 360f
+        if (deg < 0f) deg += 360f
+        return (deg * 10f).roundToInt() / 10f
+    }
 
     /** Call when a fresh analysis frame is applied: the cue bearing is now "here". */
     fun markReference() {
