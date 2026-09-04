@@ -512,7 +512,10 @@ class WalkController(
         val heard = scene.listenForRequest(settings.language.tag)
         val target = extractLocateTarget(heard)
         if (target != null) {
-            locator.locateOnce(id, target)
+            // Locate against a fresh frame: the backend's cached frame is from
+            // the moment of the gesture, now ~17 s and one prompt+listen old.
+            val jpeg = pipeline.captureStill(maxWidth = 1280, quality = 85)
+            locator.locateOnce(id, target, jpeg)
             // Ongoing guidance now flows from target_tracking on each walk frame.
         } else {
             val result = scene.describeOnce(heard)

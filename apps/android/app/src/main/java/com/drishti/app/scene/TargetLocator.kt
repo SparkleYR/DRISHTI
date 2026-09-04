@@ -6,14 +6,19 @@ import com.drishti.app.feedback.SpeechEngine
 import com.drishti.app.net.ApiResult
 import com.drishti.app.net.DrishtiApi
 import com.drishti.app.net.apiCall
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * "Ask -> Lock": one Moondream2 locate pass for the active Walk session.
  *
- * No image is uploaded — the backend locates against its own in-memory latest
- * decoded frame for the session (D-068), then hands the box to a CPU tracker.
- * From that point on the per-frame `target_tracking` telemetry in each
- * `/walk/analyze` response drives ongoing speech + haptics (see
+ * A freshly captured still is uploaded so the target is located against the
+ * current view, not the frame the backend cached when the Ask gesture paused
+ * the Walk loop (that can be ~17 s stale by the time the user finishes
+ * speaking). The backend then hands the box to a CPU tracker, and the
+ * per-frame `target_tracking` telemetry in each `/walk/analyze` response
+ * drives ongoing speech + haptics (see
  * [com.drishti.app.walk.WalkController.applyTargetTracking]).
  *
  * This call only speaks the one-shot confirmation, which the backend composes
@@ -24,10 +29,26 @@ class TargetLocator(
     private val speech: SpeechEngine,
     private val strings: GuidanceStrings,
 ) {
-    /** @return true when the backend locked a tracker the Walk loop can follow. */
-    suspend fun locateOnce(sessionId: String, target: String): Boolean {
+    private val jpegType = "image/jpeg".toMediaType()
+
+    /**
+     * @param jpeg a freshly captured still to locate against; when null the
+     *   backend falls back to its cached frame for the session (may be stale).
+     * @return true when the backend locked a tracker the Walk loop can follow.
+     */
+    suspend fun locateOnce(sessionId: String, target: String, jpeg: ByteArray?): Boolean {
         speech.say(strings.string(R.string.locate_working, target), flush = true)
-        return when (val r = apiCall { api.vlmLocate(target, sessionId) }) {
+        val call = suspend {
+            if (jpeg != null) {
+                val part = MultipartBody.Part.createFormData(
+                    "frame", "locate.jpg", jpeg.toRequestBody(jpegType),
+                )
+                api.vlmLocate(target, sessionId, part)
+            } else {
+                api.vlmLocate(target, sessionId)
+            }
+        }
+        return when (val r = apiCall { call() }) {
             is ApiResult.Ok -> {
                 speech.speakBlocking(r.value.text)
                 r.value.trackingAllowed

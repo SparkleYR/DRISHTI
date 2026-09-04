@@ -65,6 +65,19 @@ interface DrishtiApi {
         @Query("session_id") sessionId: String,
     ): Response<VlmLocateResponse>
 
+    /**
+     * Same as [vlmLocate] but with a freshly captured still, so the target is
+     * located against *now* rather than the (up to ~17 s old) frame the backend
+     * cached when the Ask gesture paused the Walk loop.
+     */
+    @Multipart
+    @POST("api/v1/vlm/locate")
+    suspend fun vlmLocate(
+        @Query("target_name") targetName: String,
+        @Query("session_id") sessionId: String,
+        @Part frame: MultipartBody.Part,
+    ): Response<VlmLocateResponse>
+
     @POST("api/v1/hazards")
     suspend fun createHazard(@Body request: CreateHazardRequest): Response<HazardResponse>
 
