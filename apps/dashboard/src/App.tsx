@@ -12,7 +12,7 @@ import {
   mergeHazards,
   updateHazardStatus,
 } from "./api/hazards";
-import { HazardMap } from "./components/HazardMap";
+import { RouteMonitor } from "./components/RouteMonitor";
 import { HazardOperations } from "./components/HazardOperations";
 import { ReportHazard } from "./components/ReportHazard";
 import { SystemReadiness } from "./components/SystemReadiness";
@@ -244,8 +244,13 @@ export function App() {
               workingId={workingId}
             />
 
-            {/* 4. Where are the problems? */}
-            <HazardMap accessibility={state.accessibility} hazards={state.hazards} />
+            {/* 4. Where is everyone, and where are the problems? */}
+            <RouteMonitor
+              accessibility={state.accessibility}
+              hazards={state.hazards}
+              now={now}
+              sessions={walkers}
+            />
 
           </>
         ) : (

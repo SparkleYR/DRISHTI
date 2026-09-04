@@ -155,7 +155,7 @@ function installFetch(sessions: unknown[] = []) {
   return fetchMock;
 }
 
-test("leads with who is walking, then readiness, work queue, and the map", async () => {
+test("leads with who is walking, then readiness, work queue, and the live route", async () => {
   installFetch([walkSession()]);
   render(<App />);
 
@@ -164,8 +164,8 @@ test("leads with who is walking, then readiness, work queue, and the map", async
   expect(screen.getByText("Path is clear")).toBeTruthy();
   expect(screen.getByText("Ready — people can walk")).toBeTruthy();
   expect(screen.getByText("Reports to act on")).toBeTruthy();
-  expect(screen.getByText("Where the hazards are")).toBeTruthy();
-  expect(screen.getByRole("img", { name: /Walking route with 1 hazard marked/ })).toBeTruthy();
+  expect(screen.getByText("On the route now")).toBeTruthy();
+  expect(screen.getByRole("img", { name: /Walking route with 1 walker out/ })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Verify" })).toBeTruthy();
 });
 
