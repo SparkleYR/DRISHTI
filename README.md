@@ -113,6 +113,24 @@ This creates the local database at `data/drishti.db`. Only the FastAPI service m
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000
 ```
 
+### Or start everything at once
+
+`scripts\run-drishti.ps1` starts the backend and the dashboard together, waits
+for each to answer, prints the LAN address the phone should dial, and warns when
+that address disagrees with the Android client's `DEFAULT_BACKEND_URL`.
+
+```powershell
+.\scripts\run-drishti.ps1                       # backend + dashboard
+.\scripts\run-drishti.ps1 -WithMobile           # also start the Expo harness
+.\scripts\run-drishti.ps1 -LanAddress 10.111.36.200
+.\scripts\run-drishti.ps1 -Status               # what is running
+.\scripts\run-drishti.ps1 -Stop                 # stop what it started
+```
+
+Logs land in `logs\<service>.log`. The phone and the laptop must share one
+Wi-Fi network, and `python.exe` must be allowed on Private networks in Windows
+Defender Firewall.
+
 Local health check:
 
 ```powershell

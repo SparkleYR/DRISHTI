@@ -28,6 +28,8 @@ from app.scheduling.frame_memory import LatestFrameMemory
 from app.scheduling.telemetry import LatestTelemetryHub
 from app.schemas.common import utc_now
 from app.schemas.walk import (
+    ActiveWalkSession,
+    ActiveWalkSessionsResponse,
     DetectionResult,
     DisplayColor,
     EndWalkSessionResponse,
@@ -78,6 +80,32 @@ def start_walk_session(
         max_image_width=settings.max_image_width,
         max_image_bytes=settings.max_image_bytes,
         max_result_age_ms=settings.max_result_age_ms,
+    )
+
+
+@router.get("/sessions/active", response_model=ActiveWalkSessionsResponse)
+def list_active_walk_sessions(request: Request) -> ActiveWalkSessionsResponse:
+    """Discovery for local operator surfaces (the AccessOps dashboard).
+
+    Session ids are runtime UUIDs, so a build-time environment variable can
+    never name a live session. The dashboard polls this to find one and then
+    subscribes to its telemetry WebSocket. Metadata only: no frames are stored
+    or served (D-018, D-022).
+    """
+    sessions: WalkSessionStore = request.app.state.walk_sessions
+    return ActiveWalkSessionsResponse(
+        server_time=utc_now(),
+        sessions=[
+            ActiveWalkSession(
+                session_id=session.session_id,
+                started_at=session.started_at,
+                last_frame_id=session.last_frame_id,
+                last_frame_at=session.last_frame_at,
+                last_action=session.last_action,
+                last_risk_level=session.last_risk_level,
+            )
+            for session in sessions.active_sessions()
+        ],
     )
 
 
@@ -376,6 +404,13 @@ async def _process_accepted_frame(
         haptics_enabled=haptics_enabled,
     )
     risk_ms = (perf_counter() - risk_started) * 1000
+    sessions_store: WalkSessionStore = request.app.state.walk_sessions
+    sessions_store.record_frame_result(
+        session_id,
+        processed_at=utc_now(),
+        action=decision.action,
+        risk_level=decision.level,
+    )
 
     processed_at = utc_now()
     total_ms = (perf_counter() - request_started) * 1000

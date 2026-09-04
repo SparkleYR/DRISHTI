@@ -17,18 +17,18 @@ export function HazardOperations(props: {
 }) {
   return (
     <SectionCard
-      description="Review, assign, resolve, and consolidate anonymous local reports with optimistic version checks."
-      eyebrow="Operations"
+      description="Obstacles reported by walkers. Check each one, assign it to someone, and mark it done."
+      eyebrow="Your work"
       icon={ClipboardCheck}
       id="settings"
-      title="Hazard Verification Queue"
+      title="Reports to act on"
       trailing={<StatusBadge tone={props.hazards.length ? "yellow" : "green"}>{props.hazards.length} active</StatusBadge>}
     >
       <div className="border-b border-slate-300 bg-[#fcfbf9] p-5 sm:p-6">
         <div className="grid gap-4 md:grid-cols-3">
-          <Field label="Operator alias" value={props.operatorAlias} onChange={props.setOperatorAlias} />
-          <Field label="Assign to" value={props.assignedTo} onChange={props.setAssignedTo} />
-          <Field label="Duplicate report ID" value={props.duplicateId} onChange={props.setDuplicateId} />
+          <Field label="Your name" value={props.operatorAlias} onChange={props.setOperatorAlias} />
+          <Field label="Assign the work to" value={props.assignedTo} onChange={props.setAssignedTo} />
+          <Field label="Duplicate report ID (to merge)" value={props.duplicateId} onChange={props.setDuplicateId} />
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -47,7 +47,7 @@ export function HazardOperations(props: {
                 <td className="px-6 py-4"><div className="flex flex-wrap justify-end gap-2">{nextActions(hazard.status).map(([label, status]) => <ActionButton disabled={props.workingId === hazard.id} key={status} label={label} onClick={() => void props.onStatus(hazard, status)} />)}<ActionButton disabled={props.workingId === hazard.id} icon={Merge} label="Merge" onClick={() => void props.onMerge(hazard)} /></div></td>
               </tr>
             ))}
-            {props.hazards.length === 0 ? <tr><td className="px-6 py-10 text-center text-slate-500" colSpan={6}>No active hazard reports require action.</td></tr> : null}
+            {props.hazards.length === 0 ? <tr><td className="px-6 py-10 text-center text-slate-500" colSpan={6}>Nothing needs your attention right now.</td></tr> : null}
           </tbody>
         </table>
       </div>

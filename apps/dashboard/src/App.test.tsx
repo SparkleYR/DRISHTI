@@ -113,11 +113,23 @@ Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
   value: () => null,
 });
 
+function walkSession(overrides: Record<string, unknown> = {}) {
+  return {
+    session_id: "ab12cd34-0000-0000-0000-000000000000",
+    started_at: new Date(Date.now() - 5 * 60_000).toISOString(),
+    last_frame_id: 42,
+    last_frame_at: new Date().toISOString(),
+    last_action: "CLEAR",
+    last_risk_level: "CLEAR",
+    ...overrides,
+  };
+}
+
 function jsonResponse(payload: unknown) {
   return { ok: true, status: 200, json: async () => payload };
 }
 
-function installFetch() {
+function installFetch(sessions: unknown[] = []) {
   const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
     if (init?.method === "PATCH") {
@@ -131,6 +143,9 @@ function installFetch() {
     if (url.endsWith("/api/v1/health")) return jsonResponse(HEALTH);
     if (url.endsWith("/api/v1/dashboard/summary")) return jsonResponse(SUMMARY);
     if (url.endsWith("/api/v1/dashboard/accessibility")) return jsonResponse(ACCESSIBILITY);
+    if (url.endsWith("/api/v1/walk/sessions/active")) {
+      return jsonResponse({ schema_version: "1.0.0", server_time: SUMMARY.server_time, sessions });
+    }
     if (url.includes("/api/v1/hazards?")) {
       return jsonResponse({ schema_version: "1.0.0", server_time: SUMMARY.server_time, items: [HAZARD] });
     }
@@ -140,29 +155,61 @@ function installFetch() {
   return fetchMock;
 }
 
-test("renders local overview, map marker, and verification queue", async () => {
-  installFetch();
+test("leads with who is walking, then readiness, work queue, and the map", async () => {
+  installFetch([walkSession()]);
   render(<App />);
 
-  expect(screen.getByText("Loading local operations…")).toBeTruthy();
-  await waitFor(() => expect(screen.getByText("Hazard Verification Queue")).toBeTruthy());
-  expect(screen.getAllByText("chair obstruction")).toHaveLength(2);
-  expect(screen.getByText("Awaiting review")).toBeTruthy();
-  expect(screen.getByRole("img", { name: /Digital twin coordinate plot/ })).toBeTruthy();
+  await waitFor(() => expect(screen.getByText("People out walking")).toBeTruthy());
+  expect(screen.getByText("Device AB")).toBeTruthy();
+  expect(screen.getByText("Path is clear")).toBeTruthy();
+  expect(screen.getByText("Ready — people can walk")).toBeTruthy();
+  expect(screen.getByText("Reports to act on")).toBeTruthy();
+  expect(screen.getByText("Where the hazards are")).toBeTruthy();
+  expect(screen.getByRole("img", { name: /Walking route with 1 hazard marked/ })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Verify" })).toBeTruthy();
-  expect(screen.getByText("Accessibility Analytics & Digital Twin")).toBeTruthy();
-  expect(screen.getByText("Live Walk Loop & Stream Monitor")).toBeTruthy();
-  expect(screen.getAllByText("Ask → Lock → Guide")).toHaveLength(2);
-  expect(screen.getByText("Edge Hardware & Model VRAM Manager")).toBeTruthy();
-  expect(screen.getByText("72.5")).toBeTruthy();
-  expect(screen.getByText("Official DRISHTI Local Accessibility Portal")).toBeTruthy();
-  expect(screen.getByRole("navigation", { name: "Accessibility utilities" })).toBeTruthy();
-  expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "Skip to Main Content" }).getAttribute("href")).toBe("#dashboard-content");
+});
+
+test("says plainly when nobody is walking", async () => {
+  installFetch([]);
+  render(<App />);
+
+  await waitFor(() => expect(screen.getByText("Nobody walking")).toBeTruthy());
+  expect(screen.getByText(/Nobody is walking right now/)).toBeTruthy();
+});
+
+test("flags a walker whose phone has gone quiet", async () => {
+  installFetch([
+    walkSession({ last_frame_at: new Date(Date.now() - 30_000).toISOString() }),
+  ]);
+  render(<App />);
+
+  await waitFor(() => expect(screen.getByText(/No signal for/)).toBeTruthy());
+  expect(screen.getByRole("status").textContent).toContain("Someone may need help");
+});
+
+test("flags a walker who was told to stop", async () => {
+  installFetch([walkSession({ last_action: "STOP", last_risk_level: "CRITICAL" })]);
+  render(<App />);
+
+  await waitFor(() => expect(screen.getByText("Stop — something ahead")).toBeTruthy());
+  expect(screen.getByRole("status").textContent).toContain("Someone may need help");
+});
+
+test("keeps engineering detail behind a disclosure", async () => {
+  installFetch([]);
+  render(<App />);
+
+  await waitFor(() => expect(screen.getByText("Ready — people can walk")).toBeTruthy());
+  // Model and hardware names are not on screen until the operator asks.
+  expect(screen.queryByText("Test GPU")).toBeNull();
+
+  fireEvent.click(screen.getByRole("button", { name: /Technical details/ }));
+  expect(screen.getByText("Test GPU")).toBeTruthy();
+  expect(screen.getByText("Obstacle detection")).toBeTruthy();
 });
 
 test("provides functional text size accessibility controls", async () => {
-  installFetch();
+  installFetch([]);
   render(<App />);
 
   const largerText = screen.getByRole("button", { name: "Set text size A+" });
@@ -174,16 +221,16 @@ test("provides functional text size accessibility controls", async () => {
   expect(document.documentElement.style.fontSize).toBe("100%");
 });
 
-test("renders an understandable local synchronization failure", async () => {
+test("renders an understandable failure when the backend is unreachable", async () => {
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Connection refused")));
   render(<App />);
 
-  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Local synchronization issue"));
+  await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Cannot reach the system"));
   expect(screen.getByRole("alert").textContent).toContain("Connection refused");
 });
 
 test("sends optimistic status transition fields", async () => {
-  const fetchMock = installFetch();
+  const fetchMock = installFetch([]);
   render(<App />);
   await waitFor(() => expect(screen.getByRole("button", { name: "Verify" })).toBeTruthy());
 

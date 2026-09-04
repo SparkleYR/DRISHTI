@@ -365,3 +365,53 @@ def test_frame_upload_creates_no_image_file(
     assert response.status_code == 200
     assert after == before
     assert after <= {Path("data/drishti.db"), Path("logs/drishti.log")}
+
+
+def test_active_sessions_are_discoverable_until_they_end(client: TestClient) -> None:
+    """The dashboard cannot know a runtime UUID, so it discovers one here."""
+    empty = client.get("/api/v1/walk/sessions/active")
+    assert empty.status_code == 200, empty.text
+    assert empty.json()["sessions"] == []
+
+    session_id = client.post("/api/v1/walk/sessions", json={}).json()["session_id"]
+
+    listed = client.get("/api/v1/walk/sessions/active")
+    assert listed.status_code == 200, listed.text
+    sessions = listed.json()["sessions"]
+    assert [item["session_id"] for item in sessions] == [session_id]
+    assert sessions[0]["last_frame_id"] == -1
+    assert sessions[0]["last_frame_at"] is None
+    assert sessions[0]["last_action"] is None
+    # Metadata only: no frame bytes and nothing identifying.
+    assert set(sessions[0]) == {
+        "session_id",
+        "started_at",
+        "last_frame_id",
+        "last_frame_at",
+        "last_action",
+        "last_risk_level",
+    }
+
+    assert client.patch(f"/api/v1/walk/sessions/{session_id}/end").status_code == 200
+    assert client.get("/api/v1/walk/sessions/active").json()["sessions"] == []
+
+
+def test_active_path_is_not_captured_as_a_session_id(client: TestClient) -> None:
+    # "active" must route to the listing, not to the {session_id} converters.
+    response = client.get("/api/v1/walk/sessions/active")
+    assert response.status_code == 200
+    assert "sessions" in response.json()
+
+
+def test_active_session_reports_liveness_after_a_frame(client: TestClient) -> None:
+    """Operators need to see a device is alive and what it was last told."""
+    session_id = str(start_session(client)["session_id"])
+    assert analyze(client, session_id, frame_id=0).status_code == 200
+
+    listed = client.get("/api/v1/walk/sessions/active").json()["sessions"][0]
+    assert listed["last_frame_id"] == 0
+    assert listed["last_frame_at"] is not None
+    assert listed["last_action"] in {
+        "CLEAR", "CAUTION", "MOVE_LEFT", "MOVE_RIGHT", "STOP", "PAUSE_UNCLEAR",
+    }
+    assert listed["last_risk_level"] in {"CLEAR", "WATCH", "WARN", "HIGH", "CRITICAL"}

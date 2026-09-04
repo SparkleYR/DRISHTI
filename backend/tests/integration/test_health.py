@@ -61,6 +61,7 @@ def test_openapi_exposes_only_approved_phase_ten_routes(client: TestClient) -> N
     assert set(paths) == {
         "/api/v1/health",
         "/api/v1/walk/sessions",
+        "/api/v1/walk/sessions/active",
         "/api/v1/walk/sessions/{session_id}/end",
         "/api/v1/walk/analyze",
         "/api/v1/hazards",

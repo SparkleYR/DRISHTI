@@ -45,6 +45,21 @@ class EndWalkSessionResponse(ApiModel):
     status: Literal["ENDED"] = "ENDED"
 
 
+class ActiveWalkSession(ApiModel):
+    session_id: str
+    started_at: datetime
+    last_frame_id: int
+    last_frame_at: datetime | None = None
+    last_action: GuidanceAction | None = None
+    last_risk_level: RiskLevel | None = None
+
+
+class ActiveWalkSessionsResponse(ApiModel):
+    schema_version: Literal["1.0.0"] = SCHEMA_VERSION
+    server_time: datetime
+    sessions: list[ActiveWalkSession]
+
+
 class CoordinateSpace(StrEnum):
     ORIENTED_CAPTURE_NORMALIZED = "ORIENTED_CAPTURE_NORMALIZED"
 

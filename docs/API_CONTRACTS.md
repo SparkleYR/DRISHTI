@@ -220,6 +220,30 @@ interface StartWalkSessionResponse {
 }
 ```
 
+### `GET /api/v1/walk/sessions/active`
+
+Discovery for local operator surfaces. Session ids are runtime UUIDs, so a
+build-time environment variable can never name a live session; the AccessOps
+dashboard polls this, takes the newest entry, and subscribes to that session's
+telemetry WebSocket.
+
+```ts
+interface ActiveWalkSession {
+  session_id: OpaqueId;
+  started_at: Timestamp;
+  last_frame_id: number; // -1 before the first accepted frame
+}
+
+interface ActiveWalkSessionsResponse {
+  schema_version: SchemaVersion;
+  server_time: Timestamp;
+  sessions: ActiveWalkSession[]; // newest first; empty when none is active
+}
+```
+
+Metadata only — no frame bytes, no capture content, nothing identifying
+(D-018, D-022 hold). A session disappears from this list the moment it ends.
+
 ### `PATCH /api/v1/walk/sessions/{session_id}/end`
 
 ```ts
