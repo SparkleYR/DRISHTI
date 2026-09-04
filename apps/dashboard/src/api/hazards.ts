@@ -1,8 +1,10 @@
 import type {
+  CreateHazardRequest,
   DashboardAccessibilityResponse,
   DashboardSummaryResponse,
   HazardListResponse,
   HazardRecord,
+  HazardResponse,
   HazardStatus,
   MergeHazardRequest,
   MergeHazardResponse,
@@ -22,6 +24,36 @@ export async function fetchAccessibility(): Promise<DashboardAccessibilityRespon
 
 export async function fetchActiveHazards(): Promise<HazardListResponse> {
   return requestJson(`${API_BASE_URL}/api/v1/hazards?active=true&limit=100`);
+}
+
+/**
+ * File a hazard the coordinator observed themselves.
+ *
+ * `evidence_consent` is always false: the dashboard has no camera and must never
+ * imply a stored image exists (D-046). `confidence` is 1.0 because a person saw
+ * this directly rather than a model inferring it. The map identity is passed in
+ * by the caller from the live route — never hardcoded here.
+ */
+export async function createHazard(input: {
+  category: string;
+  severity: HazardRecord["severity"];
+  temporary: boolean;
+  mapCoordinate?: CreateHazardRequest["map_coordinate"];
+}): Promise<HazardResponse> {
+  const payload: CreateHazardRequest = {
+    category: input.category,
+    severity: input.severity,
+    confidence: 1,
+    observed_at: new Date().toISOString(),
+    temporary: input.temporary,
+    evidence_consent: false,
+    ...(input.mapCoordinate ? { map_coordinate: input.mapCoordinate } : {}),
+  };
+  return requestJson(`${API_BASE_URL}/api/v1/hazards`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function updateHazardStatus(

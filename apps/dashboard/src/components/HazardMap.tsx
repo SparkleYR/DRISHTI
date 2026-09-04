@@ -29,7 +29,7 @@ export function HazardMap(props: {
         <button
           type="button"
           onClick={() => exportCsv(props.hazards)}
-          className="inline-flex min-h-9 items-center gap-2 rounded-sm border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:border-amber-400 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+          className="inline-flex min-h-9 items-center gap-2 rounded-sm border border-ink-200 bg-white px-3 text-[0.8rem] font-semibold text-ink-700 hover:border-amber-400 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
         >
           <FileSpreadsheet size={14} aria-hidden="true" />
           Download report
@@ -39,13 +39,13 @@ export function HazardMap(props: {
       <div className="grid gap-6 p-5 sm:p-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,.7fr)]">
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-950">{route?.route_name ?? "No route configured"}</h3>
+            <h3 className="text-[0.95rem] font-bold text-ink-900">{route?.route_name ?? "No route configured"}</h3>
             <StatusBadge tone={mapped.length > 0 ? "yellow" : "green"}>
               {mapped.length === 0 ? "No hazards on the route" : `${mapped.length} hazard${mapped.length === 1 ? "" : "s"} marked`}
             </StatusBadge>
           </div>
           <RouteCanvas accessibility={props.accessibility} hazards={props.hazards} />
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-600" aria-label="Map legend">
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[0.8rem] text-ink-500" aria-label="Map legend">
             <Legend color="bg-amber-700" label="The walking route" />
             <Legend color="bg-red-600" label="Serious hazard" />
             <Legend color="bg-amber-500" label="Moderate hazard" />
@@ -54,12 +54,12 @@ export function HazardMap(props: {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-sm border border-slate-300 bg-[#fcfbf9] p-5">
-            <p className="text-xs font-semibold text-slate-600">How safe this route is today</p>
+          <div className="rounded-sm border border-ink-200 bg-ink-50 p-5">
+            <p className="text-[0.8rem] font-semibold text-ink-500">How safe this route is today</p>
             <div className="mt-2 flex items-end justify-between gap-4">
-              <span className="text-4xl font-bold tabular-nums text-slate-950">
+              <span className="text-4xl font-bold tabular-nums text-ink-900">
                 {route ? Math.round(route.score) : "—"}
-                <span className="ml-1 text-sm font-bold text-slate-500">/ 100</span>
+                <span className="ml-1 text-[0.95rem] font-bold text-ink-400">/ 100</span>
               </span>
               <StatusBadge tone={scoreTone(route?.score)}>{describeScore(route?.score)}</StatusBadge>
             </div>
@@ -73,32 +73,32 @@ export function HazardMap(props: {
             >
               <div className="h-full bg-amber-600" style={{ width: `${route?.score ?? 0}%` }} />
             </div>
-            <p className="mt-3 text-xs leading-5 text-slate-600">
+            <p className="mt-3 text-xs leading-5 text-ink-500">
               {route?.active_hazard_count ?? 0} open · {route?.recurring_hazard_count ?? 0} keep coming back
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-sm border border-slate-300">
-            <div className="border-b border-slate-300 bg-[#fcfbf9] px-4 py-3">
-              <h3 className="text-sm font-bold text-slate-950">Most reported problems</h3>
+          <div className="overflow-hidden rounded-sm border border-ink-200">
+            <div className="border-b border-ink-200 bg-ink-50 px-4 py-3">
+              <h3 className="text-[0.95rem] font-bold text-ink-900">Most reported problems</h3>
             </div>
             <table className="w-full text-left text-sm">
-              <thead className="bg-white text-xs text-slate-600">
+              <thead className="bg-white text-[0.8rem] text-ink-500">
                 <tr>
                   <th className="px-4 py-2 font-semibold">Problem</th>
                   <th className="px-4 py-2 text-right font-semibold">Times seen</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-ink-200">
                 {frequency(props.hazards).map((item) => (
                   <tr key={item.category}>
-                    <th className="px-4 py-2.5 text-left font-semibold text-slate-800">{item.category}</th>
-                    <td className="px-4 py-2.5 text-right tabular-nums font-bold text-slate-950">{item.observations}</td>
+                    <th className="px-4 py-2.5 text-left font-semibold text-ink-700">{item.category}</th>
+                    <td className="px-4 py-2.5 text-right tabular-nums font-bold text-ink-900">{item.observations}</td>
                   </tr>
                 ))}
                 {props.hazards.length === 0 ? (
                   <tr>
-                    <td className="px-4 py-5 text-center text-slate-500" colSpan={2}>
+                    <td className="px-4 py-5 text-center text-ink-400" colSpan={2}>
                       Nothing reported right now
                     </td>
                   </tr>
@@ -190,7 +190,7 @@ function RouteCanvas(props: { accessibility: DashboardAccessibilityResponse; haz
   return (
     <canvas
       ref={canvasRef}
-      className="mt-3 aspect-[2/1] w-full rounded-sm border border-slate-300 bg-[#fdf9ed]"
+      className="mt-3 aspect-[2/1] w-full rounded-sm border border-ink-200 bg-[#fdf9ed]"
       role="img"
       aria-label={`Walking route with ${mapped} hazard${mapped === 1 ? "" : "s"} marked`}
     />

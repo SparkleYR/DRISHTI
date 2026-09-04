@@ -46,30 +46,30 @@ export function SystemReadiness(props: { health: HealthResponse }) {
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-sm border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:border-amber-400 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-sm border border-ink-200 bg-white px-3 text-[0.8rem] font-semibold text-ink-700 hover:border-amber-400 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
         >
           Technical details
           <ChevronDown className={open ? "rotate-180 transition" : "transition"} size={14} aria-hidden="true" />
         </button>
       </div>
       {open ? (
-        <div className="border-t border-slate-300 bg-white px-5 py-4 sm:px-6">
-          <p className="text-xs text-slate-600">
+        <div className="border-t border-ink-200 bg-white px-5 py-4 sm:px-6">
+          <p className="text-[0.8rem] text-ink-500">
             Share this with your technical contact if something is wrong.
           </p>
           <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex justify-between gap-3 border-b border-slate-200 pb-1.5 text-sm">
-              <dt className="text-slate-600">Computer</dt>
-              <dd className="font-semibold text-slate-950">{props.health.compute.device_name ?? "Unavailable"}</dd>
+            <div className="flex justify-between gap-3 border-b border-ink-200 pb-1.5 text-sm">
+              <dt className="text-ink-500">Computer</dt>
+              <dd className="font-semibold text-ink-900">{props.health.compute.device_name ?? "Unavailable"}</dd>
             </div>
-            <div className="flex justify-between gap-3 border-b border-slate-200 pb-1.5 text-sm">
-              <dt className="text-slate-600">Database</dt>
-              <dd className="font-semibold text-slate-950">{props.health.database.status}</dd>
+            <div className="flex justify-between gap-3 border-b border-ink-200 pb-1.5 text-sm">
+              <dt className="text-ink-500">Database</dt>
+              <dd className="font-semibold text-ink-900">{props.health.database.status}</dd>
             </div>
             {Object.entries(props.health.models).map(([name, model]) => (
-              <div className="flex justify-between gap-3 border-b border-slate-200 pb-1.5 text-sm" key={name}>
-                <dt className="text-slate-600">{plainName(name)}</dt>
-                <dd className={`font-semibold ${model.status === "READY" ? "text-slate-950" : "text-amber-800"}`}>
+              <div className="flex justify-between gap-3 border-b border-ink-200 pb-1.5 text-sm" key={name}>
+                <dt className="text-ink-500">{plainName(name)}</dt>
+                <dd className={`font-semibold ${model.status === "READY" ? "text-ink-900" : "text-amber-800"}`}>
                   {model.status}
                 </dd>
               </div>

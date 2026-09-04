@@ -43,3 +43,6 @@ models/vlm/starmie-v1/**
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local dev-server launch config (machine specific)
+.claude/launch.json

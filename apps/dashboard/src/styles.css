@@ -2,17 +2,48 @@
 @import "@fontsource/inter/latin-500.css";
 @import "@fontsource/inter/latin-600.css";
 @import "@fontsource/inter/latin-700.css";
+@import "@fontsource-variable/source-serif-4/index.css";
 @import "tailwindcss";
 
 @source "./**/*.{ts,tsx}";
 @source "../../../packages/contracts/src/**/*.ts";
 
+/*
+  Two voices, on purpose.
+
+  Headings and figures use a humanist serif so the dashboard reads as a
+  considered institutional tool rather than a generated template. Everything a
+  coordinator has to scan quickly under pressure -- table cells, labels, form
+  controls -- stays in a plain grotesque, which is easier at small sizes and in
+  dense rows. Both faces are self-hosted; DRISHTI makes no network calls off
+  this LAN (D-008).
+*/
+@theme {
+  --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
+
+  /* Ink: warmer and softer than pure slate, so long shifts are easier. */
+  --color-ink-50: #f7f6f4;
+  --color-ink-100: #eeece8;
+  --color-ink-200: #ddd9d2;
+  --color-ink-300: #c2bcb2;
+  --color-ink-400: #8d857a;
+  --color-ink-500: #6b6459;
+  --color-ink-600: #524c43;
+  --color-ink-700: #3d3830;
+  --color-ink-800: #2a2621;
+  --color-ink-900: #1a1714;
+}
+
 :root {
-  font-family: Inter, "Open Sans", Arial, sans-serif;
-  color: #0f172a;
-  background: #faf8f5;
+  font-family: var(--font-sans);
+  /* Slightly larger base: this is read across a desk, not held in the hand. */
+  font-size: 17px;
+  color: var(--color-ink-900);
+  background: #fbfaf8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
@@ -21,19 +52,24 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #faf8f5;
-  background-image:
-    linear-gradient(rgba(180, 83, 9, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(180, 83, 9, 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-color: #fbfaf8;
 }
+
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 code { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
 
-.utility-link { color: #475569; text-decoration: none; }
-.utility-link:hover { color: #92400e; text-decoration: underline; text-underline-offset: 2px; }
+/* Headings carry the serif; figures get tabular digits so columns line up. */
+h1, h2, h3, .font-display {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  letter-spacing: -0.011em;
+}
+.tabular { font-variant-numeric: tabular-nums; }
+
+.utility-link { color: var(--color-ink-500); text-decoration: none; }
+.utility-link:hover { color: #92400e; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

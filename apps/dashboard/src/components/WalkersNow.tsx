@@ -33,15 +33,15 @@ export function WalkersNow(props: { sessions: ActiveWalkSession[]; now: number }
       }
     >
       {walkers.length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-600 sm:px-6">
+        <p className="px-6 py-14 text-center text-[0.95rem] text-ink-500 sm:px-7">
           Nobody is walking right now. Sessions appear here the moment someone starts Walk Mode on their phone.
         </p>
       ) : (
-        <ul className="divide-y divide-slate-200">
+        <ul className="divide-y divide-ink-200">
           {walkers.map((walker) => (
-            <li key={walker.id} className="flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 sm:px-6">
+            <li key={walker.id} className="flex flex-wrap items-center gap-x-7 gap-y-3 px-6 py-5 sm:px-7">
               <span
-                className={`grid size-11 shrink-0 place-items-center rounded-sm border text-sm font-bold ${
+                className={`grid size-12 shrink-0 place-items-center rounded-sm border font-display text-lg font-semibold ${
                   walker.tone === "red"
                     ? "border-red-300 bg-red-50 text-red-800"
                     : walker.tone === "yellow"
@@ -53,12 +53,14 @@ export function WalkersNow(props: { sessions: ActiveWalkSession[]; now: number }
                 {walker.tag}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-slate-950">Device {walker.tag}</p>
-                <p className="mt-0.5 text-xs text-slate-600">Walking for {walker.duration}</p>
+                <p className="font-display text-xl font-semibold leading-tight text-ink-900">Device {walker.tag}</p>
+                <p className="mt-1 text-[0.85rem] text-ink-500">Walking for {walker.duration}</p>
               </div>
-              <div className="min-w-[13rem]">
-                <p className="text-xs font-semibold text-slate-600">Assistant is saying</p>
-                <p className={`mt-0.5 text-sm font-bold ${walker.tone === "red" ? "text-red-800" : "text-slate-950"}`}>
+              <div className="min-w-[14rem]">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.07em] text-ink-400">
+                  Assistant is saying
+                </p>
+                <p className={`mt-1 font-display text-lg font-semibold leading-snug ${walker.tone === "red" ? "text-red-800" : "text-ink-900"}`}>
                   {walker.guidance}
                 </p>
               </div>
@@ -71,7 +73,7 @@ export function WalkersNow(props: { sessions: ActiveWalkSession[]; now: number }
         </ul>
       )}
       {needsAttention > 0 ? (
-        <p className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-900 sm:px-6" role="status">
+        <p className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-6 py-4 text-[0.95rem] font-semibold text-red-900 sm:px-7" role="status">
           <ShieldAlert size={16} aria-hidden="true" />
           Someone may need help. Check on the devices marked above.
         </p>
