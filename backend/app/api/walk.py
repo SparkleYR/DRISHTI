@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from time import perf_counter
 from typing import Annotated
+import math
 
 from fastapi import APIRouter, File, Form, Request, UploadFile, WebSocket
 from starlette.websockets import WebSocketDisconnect
@@ -16,7 +17,8 @@ from app.guidance.overlay_contract import build_overlay
 from app.perception.detector import Detector
 from app.perception.segmenter import SegmentationFrame, Segmenter
 from app.perception.tracking import TrackingSessionStore
-from app.perception.target_tracking import TargetTrackingSessionStore
+from app.perception.landmark_memory import LandmarkMemoryStore
+from app.guidance.target_guidance import TargetGuidanceSessionStore
 from app.risk.priority import safety_preempts_target_guidance
 from app.risk.rules import select_action
 from app.risk.scoring import RiskAssessment, score_tracks
@@ -62,10 +64,12 @@ def start_walk_session(
     tracking_sessions.start_session(session.session_id)
     risk_sessions: RiskSessionStore = request.app.state.risk_sessions
     risk_sessions.start_session(session.session_id)
-    target_sessions: TargetTrackingSessionStore = (
+    target_sessions: TargetGuidanceSessionStore = (
         request.app.state.target_tracking_sessions
     )
     target_sessions.start_session(session.session_id)
+    landmark_memories: LandmarkMemoryStore = request.app.state.landmark_memories
+    landmark_memories.start_session(session.session_id)
     return StartWalkSessionResponse(
         server_time=now,
         session_id=session.session_id,
@@ -90,10 +94,12 @@ async def end_walk_session(session_id: str, request: Request) -> EndWalkSessionR
     tracking_sessions.end_session(session_id)
     risk_sessions: RiskSessionStore = request.app.state.risk_sessions
     risk_sessions.end_session(session_id)
-    target_sessions: TargetTrackingSessionStore = (
+    target_sessions: TargetGuidanceSessionStore = (
         request.app.state.target_tracking_sessions
     )
     target_sessions.end_session(session_id)
+    landmark_memories: LandmarkMemoryStore = request.app.state.landmark_memories
+    landmark_memories.end_session(session_id)
     frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
     frame_memory.end_session(session_id)
     telemetry_hub: LatestTelemetryHub = request.app.state.target_telemetry_hub
@@ -138,12 +144,19 @@ async def analyze_frame(
     frame_id: Annotated[int, Form(ge=0)],
     captured_at: Annotated[datetime, Form()],
     rotation_degrees: Annotated[RotationDegrees, Form()],
+    heading_degrees: Annotated[float | None, Form()] = None,
 ) -> FrameAnalysisResponse:
     received_at = utc_now()
     started = perf_counter()
     settings: Settings = request.app.state.settings
     sessions: WalkSessionStore = request.app.state.walk_sessions
     session = sessions.require_active(session_id)
+    if heading_degrees is not None and not math.isfinite(heading_degrees):
+        raise AppError(
+            ErrorCode.INVALID_REQUEST,
+            "heading_degrees must be a finite number.",
+            status_code=422,
+        )
     detector: Detector = request.app.state.detector
     if not detector.ready:
         raise AppError(
@@ -211,6 +224,7 @@ async def analyze_frame(
             rotation_degrees=rotation_degrees,
             received_at=received_at,
             request_started=started,
+            heading_degrees=heading_degrees,
         ),
     )
 
@@ -226,6 +240,7 @@ async def _process_accepted_frame(
     rotation_degrees: RotationDegrees,
     received_at: datetime,
     request_started: float,
+    heading_degrees: float | None,
 ) -> FrameAnalysisResponse:
     settings: Settings = request.app.state.settings
     detector: Detector = request.app.state.detector
@@ -253,6 +268,7 @@ async def _process_accepted_frame(
         frame_id,
         frame_bytes,
         rotation_degrees,
+        heading_degrees,
     )
     del frame_bytes
 
@@ -289,10 +305,6 @@ async def _process_accepted_frame(
         frame_id=frame_id,
         captured_at=captured_at,
     )
-    target_sessions: TargetTrackingSessionStore = (
-        request.app.state.target_tracking_sessions
-    )
-    target_sessions.update(session_id, decoded.image)
     tracking_depth_ms = (perf_counter() - tracking_started) * 1000
 
     spatial_started = perf_counter()
@@ -330,11 +342,6 @@ async def _process_accepted_frame(
         and session_settings.haptics_enabled is False
     )
     guidance = build_guidance(decision, haptics_enabled=haptics_enabled)
-    target_tracking = target_sessions.telemetry(
-        session_id,
-        is_safety_overridden=safety_preempts_target_guidance(decision),
-        haptics_enabled=haptics_enabled,
-    )
     overlay = build_overlay(
         decision,
         corridor,
@@ -345,6 +352,25 @@ async def _process_accepted_frame(
         _to_contract_detection(item, decision.critical_track_ids)
         for item in assessments
     ]
+    now_ms = int(captured_at.timestamp() * 1000)
+    landmark_memories: LandmarkMemoryStore = request.app.state.landmark_memories
+    landmark_memories.observe(
+        session_id,
+        now_ms=now_ms,
+        heading_degrees=heading_degrees,
+        detections=detections,
+    )
+    target_sessions: TargetGuidanceSessionStore = (
+        request.app.state.target_tracking_sessions
+    )
+    target_tracking = target_sessions.step(
+        session_id,
+        now_ms=now_ms,
+        heading_degrees=heading_degrees,
+        detections=detections,
+        is_safety_overridden=safety_preempts_target_guidance(decision),
+        haptics_enabled=haptics_enabled,
+    )
     risk_ms = (perf_counter() - risk_started) * 1000
 
     processed_at = utc_now()

@@ -133,9 +133,28 @@ class HapticPattern(StrEnum):
 
 class TargetTrackingState(StrEnum):
     IDLE = "IDLE"
-    LOCATING = "LOCATING"
-    LOCKED_TRACKING = "LOCKED_TRACKING"
-    TARGET_LOST = "TARGET_LOST"
+    SEEKING = "SEEKING"
+    GUIDING = "GUIDING"
+    ARRIVED = "ARRIVED"
+    LOST = "LOST"
+
+
+class TargetGuidanceStep(StrEnum):
+    NONE = "NONE"
+    TURN_LEFT = "TURN_LEFT"
+    TURN_RIGHT = "TURN_RIGHT"
+    KEEP_TURNING = "KEEP_TURNING"
+    FACE_AND_WALK = "FACE_AND_WALK"
+    WALKING = "WALKING"
+    ARRIVED = "ARRIVED"
+    REACQUIRE = "REACQUIRE"
+
+
+class TargetRangeHint(StrEnum):
+    NEAR = "NEAR"
+    MID = "MID"
+    FAR = "FAR"
+    UNKNOWN = "UNKNOWN"
 
 
 class TargetHapticPattern(StrEnum):
@@ -237,6 +256,11 @@ class GuidanceContract(ApiModel):
 class TargetTrackingTelemetry(ApiModel):
     tracking_state: TargetTrackingState
     target_name: str | None = None
+    guidance_step: TargetGuidanceStep = TargetGuidanceStep.NONE
+    bearing_degrees: FiniteNumber | None = None
+    range_hint: TargetRangeHint = TargetRangeHint.UNKNOWN
+    # Deprecated compatibility bridge for the native client. New guidance never
+    # speaks or derives behavior from this field.
     clock_direction: str | None = None
     target_center: NormalizedPoint | None = None
     confidence: Normalized | None = None

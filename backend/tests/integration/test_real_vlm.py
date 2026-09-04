@@ -92,6 +92,10 @@ def test_real_moondream_runs_offline_and_releases_cuda_for_walk(
                 "frame": ("walk.jpg", io.BytesIO(fixture), "image/jpeg")
             },
         )
+        # Force the fallback branch: the redesign normally resolves the detected
+        # bus from landmark memory and correctly avoids loading the VLM.
+        app.state.landmark_memories.end_session(walk_session["session_id"])
+        app.state.landmark_memories.start_session(walk_session["session_id"])
         locate_future = pool.submit(
             client.post,
             "/api/v1/vlm/locate",
@@ -135,17 +139,15 @@ def test_real_moondream_runs_offline_and_releases_cuda_for_walk(
     assert response.json()["timings"]["unload_ms"] >= 0
     assert before_locate.status_code == 200, before_locate.text
     assert during_locate.status_code == 200, during_locate.text
-    assert during_locate.json()["target_tracking"]["tracking_state"] == "LOCATING"
+    assert during_locate.json()["target_tracking"]["tracking_state"] == "SEEKING"
     assert locate.status_code == 200, locate.text
     assert locate.json()["target"]["box"]
     assert locate.json()["tracking_allowed"] is True
+    assert locate.json()["resolved_from"] == "VLM"
     assert locate.json()["source_frame_id"] == 0
     assert locate.json()["timings"]["unload_ms"] >= 0
     assert health.json()["models"]["vlm"]["status"] == "READY"
     assert health.json()["walk_mode_available"] is True
     assert walk.status_code == 200, walk.text
     assert walk.json()["detections"]
-    assert walk.json()["target_tracking"]["tracking_state"] in {
-        "LOCKED_TRACKING",
-        "TARGET_LOST",
-    }
+    assert walk.json()["target_tracking"]["tracking_state"] in {"GUIDING", "LOST"}

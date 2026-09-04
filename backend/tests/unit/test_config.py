@@ -102,3 +102,12 @@ def test_wall_side_threshold_cannot_exceed_centre_threshold() -> None:
             wall_centre_ratio_threshold=0.2,
             wall_side_ratio_threshold=0.3,
         )
+
+
+def test_target_face_tolerance_must_be_below_turn_threshold() -> None:
+    with pytest.raises(ValidationError):
+        Settings(
+            _env_file=None,
+            target_face_tolerance_degrees=25.0,
+            target_turn_threshold_degrees=25.0,
+        )

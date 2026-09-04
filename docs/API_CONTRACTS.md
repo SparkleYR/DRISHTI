@@ -250,6 +250,12 @@ Required parts:
 | `captured_at` | timestamp | RFC 3339 UTC |
 | `rotation_degrees` | integer | `0`, `90`, `180`, or `270` |
 
+Optional parts:
+
+| Part | Type | Rules |
+|---|---|---|
+| `heading_degrees` | number | Finite device azimuth at capture; wrapped by the backend. Missing values degrade target guidance to in-view-only. |
+
 The non-file parts correspond to this typed metadata object:
 
 ```ts
@@ -258,6 +264,7 @@ interface FrameAnalysisMetadata {
   frame_id: number;
   captured_at: Timestamp;
   rotation_degrees: 0 | 90 | 180 | 270;
+  heading_degrees?: number;
 }
 ```
 
@@ -316,9 +323,16 @@ interface GuidanceContract {
 
 type TargetTrackingState =
   | "IDLE"
-  | "LOCATING"
-  | "LOCKED_TRACKING"
-  | "TARGET_LOST";
+  | "SEEKING"
+  | "GUIDING"
+  | "ARRIVED"
+  | "LOST";
+
+type TargetGuidanceStep =
+  | "NONE" | "TURN_LEFT" | "TURN_RIGHT" | "KEEP_TURNING"
+  | "FACE_AND_WALK" | "WALKING" | "ARRIVED" | "REACQUIRE";
+
+type TargetRangeHint = "NEAR" | "MID" | "FAR" | "UNKNOWN";
 
 type TargetHapticPattern =
   | "NONE"
@@ -329,7 +343,10 @@ type TargetHapticPattern =
 interface TargetTrackingTelemetry {
   tracking_state: TargetTrackingState;
   target_name: string | null;
-  clock_direction: string | null;
+  guidance_step: TargetGuidanceStep;
+  bearing_degrees: number | null; // signed: negative left, positive right
+  range_hint: TargetRangeHint;
+  clock_direction?: string | null; // deprecated compatibility bridge; not authoritative
   target_center: NormalizedPoint | null;
   confidence: number | null;
   is_safety_overridden: boolean;
@@ -864,9 +881,10 @@ Invariants:
 
 ### `POST /api/v1/vlm/locate`
 
-This endpoint is user-triggered. It performs one Moondream2 detection pass,
-unloads the VLM and releases CUDA cache, and only then initializes the CPU
-tracker. It is never called by continuous Walk processing.
+This endpoint is user-triggered. It first resolves against recent detector
+landmark memory. Only a memory miss performs one Moondream2 detection pass; the
+VLM is then unloaded and CUDA cache released. It is never called by continuous
+Walk processing.
 
 Query parameters:
 
@@ -909,26 +927,34 @@ interface VLMLocateResponse {
   model: "moondream2";
   text: string;
   target: VLMLocatedTarget;
-  clock_direction: string;
+  bearing_degrees: number | null;
+  range_hint: "NEAR" | "MID" | "FAR" | "UNKNOWN";
+  resolved_from: "MEMORY" | "VLM";
+  clock_direction?: string | null; // deprecated compatibility bridge
   tracking_allowed: boolean;
   source_frame_id: number | null;
   timings: VLMTimings;
 }
 ```
 
-Moondream2's local `detect` API supplies normalized boxes but no calibrated
-probability. `target.confidence` is therefore `null`; the backend must not
-invent a score. If several boxes are returned, the largest valid box is chosen,
-with centre proximity as the deterministic tie-breaker. `point` is that box's
-centre. A missing target returns `NOT_FOUND`.
+Landmark memory is populated from the detector on processed Walk frames, scoped
+to one session, capped, expired after the configured TTL, and deleted at
+session end. It stores labels and geometry/bearing metadata only, never image
+bytes. Exact, token-subset, and approved synonym matching select the most recent
+eligible landmark. People are excluded by default.
 
-For an active session, successful tracker initialization changes state from
-`LOCATING` to `LOCKED_TRACKING`. OpenCV MIL updates the normalized box on each
-Walk frame, while a target appearance histogram supplies normalized tracking
-confidence. Failed updates or confidence below the configured threshold change
-state to `TARGET_LOST` and schedule `Target lost. Stop and scan again.` This
-announcement remains pending while safety guidance is active. Tracker state,
-histograms, and frame snapshots are process-local and deleted on session end.
+On a memory miss, Moondream2's local `detect` API supplies normalized boxes but
+no calibrated probability. `target.confidence` is therefore `null`; the backend
+must not invent a score. A missing target returns `NOT_FOUND` with an instruction
+to face the target and ask again.
+
+For an active session, a successful resolution seeds turn-by-turn guidance.
+Detector re-acquisition corrects bearing drift; optional device heading permits
+short out-of-view guidance. After the configured timeout the state becomes
+`LOST` and emits `I've lost it. Stop and scan around slowly.` Coarse range uses
+only normalized box height and lower edge. It never represents metres or safe
+clearance. Every actionable Risk Engine decision freezes and silences target
+guidance for that frame.
 
 The locator shares every `/query` worker, timeout, offline-runtime, VRAM guard,
 non-queueing, error-isolation, and immediate-unload invariant above.

@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from app.schemas.common import ApiModel, SCHEMA_VERSION
-from app.schemas.walk import NormalizedPoint
+from app.schemas.walk import NormalizedPoint, TargetRangeHint
 
 
 class VLMTimings(ApiModel):
@@ -51,7 +51,11 @@ class VLMLocateResponse(ApiModel):
     model: Literal["moondream2"] = "moondream2"
     text: str
     target: VLMLocatedTarget
-    clock_direction: str
+    bearing_degrees: float | None = Field(default=None, allow_inf_nan=False)
+    range_hint: TargetRangeHint = TargetRangeHint.UNKNOWN
+    resolved_from: Literal["MEMORY", "VLM"]
+    # Deprecated compatibility bridge until the native client contract lands.
+    clock_direction: str | None = None
     tracking_allowed: bool
     source_frame_id: int | None = Field(default=None, ge=0)
     timings: VLMTimings

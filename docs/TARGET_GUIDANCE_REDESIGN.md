@@ -2,7 +2,7 @@
 
 - Plan version: `target-guidance/2.0.0`
 - Raised: 2026-09-04
-- Status: **Proposed — needs decision sign-off (D-073…D-077) before implementation**
+- Status: **Accepted — backend implementation in progress; native client update pending**
 - Supersedes the Ask→Lock→Guide behaviour accepted in D-069/D-070/D-072 (the
   endpoints and telemetry channel stay; the resolver, the tracker, and the
   spoken output change).
@@ -45,7 +45,7 @@ never seen, one Moondream2 `detect` on the current frame is the fallback; if tha
 also fails, the assistant says so plainly. The VLM never enters the continuous
 loop and no frame is stored (D-018, D-022 unchanged).
 
-## 3. Decisions required
+## 3. Accepted decisions
 
 | Proposed | Decision | Consequence |
 |---|---|---|
@@ -59,6 +59,12 @@ loop and no frame is stored (D-018, D-022 unchanged).
 makes "turn until you're facing it" work when the target is momentarily out of
 frame; D-076 keeps the unreliable open-vocab path off the critical route;
 D-077 keeps the safety language honest.
+
+Implementation note: the backend temporarily retains `clock_direction` as a
+deprecated, non-authoritative compatibility field because the native Android
+DTO is maintained separately and was explicitly left untouched in this pass.
+No backend speech or guidance decision uses that field. It is removed when the
+coordinated Android contract update lands.
 
 ## 4. Landmark memory (D-073)
 
@@ -218,7 +224,11 @@ Add to `Settings`, all unvalidated engineering defaults in the D-039 tradition:
 | `target_arrived_dwell_seconds` | `2.0` | NEAR + centred this long → `ARRIVED` |
 | `target_speech_interval_seconds` | `4.0` | Min gap between unchanged-step lines |
 
-## 8. Android client changes (this repo, land with the backend)
+## 8. Android client changes (pending coordinated client pass)
+
+The backend pass does not modify `apps/android`. Until this section lands, the
+backend emits the deprecated optional `clock_direction` compatibility field in
+addition to the new authoritative fields.
 
 - **`GyroSteering`** — expose `currentHeadingDegrees(): Float` (the azimuth it
   already reads, `Math.toDegrees(currentYaw)`, normalized `0..360`).

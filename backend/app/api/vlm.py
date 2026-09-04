@@ -19,7 +19,13 @@ from app.explore.local_vlm import (
 from app.explore.vlm_executor import VLMExecutor
 from app.frame_ingress import JPEG_CONTENT_TYPE, decode_jpeg
 from app.schemas.common import utc_now
-from app.perception.target_tracking import TargetTrackingSessionStore, clock_direction
+from app.guidance.target_guidance import (
+    TargetGuidanceSessionStore,
+    compatibility_clock_direction,
+    guidance_text,
+    range_hint,
+)
+from app.perception.landmark_memory import LandmarkMemoryStore
 from app.scheduling.frame_memory import LatestFrameMemory
 from app.schemas.vlm import (
     VLMLocatedTarget,
@@ -43,6 +49,8 @@ async def locate_vlm_target(
     image_base64: Annotated[str | None, Form()] = None,
 ) -> VLMLocateResponse:
     started = perf_counter()
+    now = utc_now()
+    now_ms = int(now.timestamp() * 1000)
     target_name = " ".join(target_name.strip().split())
     if not target_name:
         raise AppError(
@@ -53,14 +61,67 @@ async def locate_vlm_target(
 
     if session_id is not None:
         request.app.state.walk_sessions.require_active(session_id)
-    target_sessions: TargetTrackingSessionStore = (
+    target_sessions: TargetGuidanceSessionStore = (
         request.app.state.target_tracking_sessions
     )
     settings: Settings = request.app.state.settings
+    landmark_memories: LandmarkMemoryStore = request.app.state.landmark_memories
+    if session_id is not None:
+        remembered = landmark_memories.resolve(
+            session_id,
+            target_name,
+            now_ms=now_ms,
+        )
+        if remembered is not None:
+            if frame is not None:
+                await frame.close()
+            frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
+            snapshot = frame_memory.snapshot(session_id)
+            visible = now_ms - remembered.last_seen_ms <= 2_000
+            seed = target_sessions.start_guidance(
+                session_id,
+                target_name=target_name,
+                landmark=remembered,
+                now_ms=now_ms,
+                heading_degrees=snapshot.heading_degrees,
+                visible=visible,
+            )
+            box = remembered.last_box
+            return VLMLocateResponse(
+                server_time=now,
+                text=guidance_text(target_name, seed.bearing_degrees),
+                target=VLMLocatedTarget(
+                    label=target_name,
+                    confidence=None,
+                    box=VLMTargetBox(
+                        x_min=box[0], y_min=box[1], x_max=box[2], y_max=box[3]
+                    ),
+                    point={
+                        "x": remembered.last_center_x,
+                        "y": (box[1] + box[3]) / 2.0,
+                    },
+                ),
+                bearing_degrees=seed.bearing_degrees,
+                range_hint=seed.range_hint,
+                resolved_from="MEMORY",
+                clock_direction=compatibility_clock_direction(
+                    remembered.last_center_x if visible else None
+                ),
+                tracking_allowed=True,
+                source_frame_id=snapshot.frame_id,
+                timings=VLMTimings(
+                    decode_ms=0.0,
+                    load_ms=0.0,
+                    inference_ms=0.0,
+                    unload_ms=0.0,
+                    total_ms=(perf_counter() - started) * 1000,
+                ),
+            )
+
     engine: VLMEngine = request.app.state.vlm_engine
     if not engine.ready:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.MODEL_NOT_READY,
             "The local VLM is unavailable.",
@@ -70,6 +131,7 @@ async def locate_vlm_target(
         )
 
     source_frame_id: int | None = None
+    source_heading_degrees: float | None = None
     rotation = RotationDegrees.DEG_0
     if frame is None and image_base64 is None and session_id is not None:
         frame_memory: LatestFrameMemory = request.app.state.latest_frame_memory
@@ -77,6 +139,7 @@ async def locate_vlm_target(
         frame_bytes = snapshot.jpeg_bytes
         rotation = snapshot.rotation_degrees
         source_frame_id = snapshot.frame_id
+        source_heading_degrees = snapshot.heading_degrees
     else:
         frame_bytes = await _read_image_payload(
             frame,
@@ -96,7 +159,7 @@ async def locate_vlm_target(
     del frame_bytes
 
     if session_id is not None:
-        target_sessions.begin_locating(session_id, target_name)
+        target_sessions.begin_seeking(session_id, target_name)
 
     executor: VLMExecutor = request.app.state.vlm_executor
     try:
@@ -106,19 +169,19 @@ async def locate_vlm_target(
         )
     except AppError:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise
     except VLMTargetNotFoundError as exc:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.NOT_FOUND,
-            "The requested target was not found in the snapshot.",
+            f"I haven't seen a {target_name} recently — face it and ask again.",
             status_code=404,
         ) from exc
     except VLMResourceError as exc:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.MODEL_NOT_READY,
             "The local VLM could not reserve safe CUDA memory.",
@@ -128,7 +191,7 @@ async def locate_vlm_target(
         ) from exc
     except VLMError as exc:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.MODEL_NOT_READY,
             "The local VLM could not locate this target.",
@@ -138,7 +201,7 @@ async def locate_vlm_target(
         ) from exc
     except Exception as exc:
         if session_id is not None:
-            target_sessions.fail_locating(session_id)
+            target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.MODEL_NOT_READY,
             "The local VLM could not locate this target.",
@@ -148,19 +211,33 @@ async def locate_vlm_target(
         ) from exc
 
     tracking_allowed = False
+    result_range = range_hint(result.box)
+    result_bearing = (result.point[0] - 0.5) * settings.walk_camera_hfov_degrees
     if session_id is not None:
-        tracking_allowed = target_sessions.lock_target(
+        landmark = landmark_memories.remember(
             session_id,
-            target_name,
-            decoded.image,
-            result.box,
+            label=target_name,
+            now_ms=now_ms,
+            heading_degrees=source_heading_degrees,
+            box=result.box,
         )
+        seed = target_sessions.start_guidance(
+            session_id,
+            target_name=target_name,
+            landmark=landmark,
+            now_ms=now_ms,
+            heading_degrees=source_heading_degrees,
+            visible=True,
+        )
+        result_bearing = seed.bearing_degrees
+        result_range = seed.range_hint
+        tracking_allowed = True
 
-    direction = clock_direction(result.point[0])
+    direction = compatibility_clock_direction(result.point[0])
     total_ms = (perf_counter() - started) * 1000
     return VLMLocateResponse(
         server_time=utc_now(),
-        text=f"{target_name.capitalize()} detected at {direction}.",
+        text=guidance_text(target_name, result_bearing),
         target=VLMLocatedTarget(
             label=target_name,
             confidence=result.confidence,
@@ -172,6 +249,9 @@ async def locate_vlm_target(
             ),
             point={"x": result.point[0], "y": result.point[1]},
         ),
+        bearing_degrees=result_bearing,
+        range_hint=result_range,
+        resolved_from="VLM",
         clock_direction=direction,
         tracking_allowed=tracking_allowed,
         source_frame_id=source_frame_id,

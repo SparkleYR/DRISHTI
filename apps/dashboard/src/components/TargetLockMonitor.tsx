@@ -1,5 +1,5 @@
 import type { TargetTrackingTelemetry } from "@drishti/contracts";
-import { AlertOctagon, Clock3, Crosshair, LockKeyhole, Target } from "lucide-react";
+import { AlertOctagon, Compass, Crosshair, LockKeyhole, Target } from "lucide-react";
 
 import type { EdgeStreamSnapshot } from "../types";
 import { SectionCard, StatusBadge } from "./ui";
@@ -7,6 +7,9 @@ import { SectionCard, StatusBadge } from "./ui";
 const IDLE: TargetTrackingTelemetry = {
   tracking_state: "IDLE",
   target_name: null,
+  guidance_step: "NONE",
+  bearing_degrees: null,
+  range_hint: "UNKNOWN",
   clock_direction: null,
   target_center: null,
   confidence: null,
@@ -18,11 +21,11 @@ const IDLE: TargetTrackingTelemetry = {
 
 export function TargetLockMonitor({ edge }: { edge: EdgeStreamSnapshot }) {
   const target = edge.targetTracking ?? edge.frameAnalysis?.target_tracking ?? IDLE;
-  const stateTone = target.tracking_state === "LOCKED_TRACKING"
+  const stateTone = target.tracking_state === "GUIDING" || target.tracking_state === "ARRIVED"
     ? "green"
-    : target.tracking_state === "TARGET_LOST"
+    : target.tracking_state === "LOST"
       ? "red"
-      : target.tracking_state === "LOCATING"
+      : target.tracking_state === "SEEKING"
         ? "yellow"
         : "slate";
   return (
@@ -44,7 +47,9 @@ export function TargetLockMonitor({ edge }: { edge: EdgeStreamSnapshot }) {
         ) : null}
         <dl className="divide-y divide-slate-200 rounded-sm border border-slate-300">
           <Detail icon={LockKeyhole} label="Locked target" value={target.target_name ?? "No target locked"} />
-          <Detail icon={Clock3} label="Clock direction" value={target.clock_direction ?? "—"} />
+          <Detail icon={Compass} label="Guidance" value={target.guidance_step.replaceAll("_", " ")} />
+          <Detail icon={Compass} label="Relative bearing" value={target.bearing_degrees === null ? "—" : `${target.bearing_degrees.toFixed(1)}°`} />
+          <Detail icon={Compass} label="Range hint" value={target.range_hint} />
           <Detail
             icon={Crosshair}
             label="Normalized centre"

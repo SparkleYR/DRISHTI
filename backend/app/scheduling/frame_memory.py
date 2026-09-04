@@ -13,6 +13,7 @@ class FrameSnapshot:
     frame_id: int
     jpeg_bytes: bytes
     rotation_degrees: RotationDegrees
+    heading_degrees: float | None = None
 
 
 class LatestFrameMemory:
@@ -28,12 +29,14 @@ class LatestFrameMemory:
         frame_id: int,
         jpeg_bytes: bytes,
         rotation_degrees: RotationDegrees,
+        heading_degrees: float | None = None,
     ) -> None:
         snapshot = FrameSnapshot(
             session_id=session_id,
             frame_id=frame_id,
             jpeg_bytes=bytes(jpeg_bytes),
             rotation_degrees=rotation_degrees,
+            heading_degrees=heading_degrees,
         )
         with self._lock:
             current = self._frames.get(session_id)
@@ -55,6 +58,7 @@ class LatestFrameMemory:
                 frame_id=current.frame_id,
                 jpeg_bytes=bytes(current.jpeg_bytes),
                 rotation_degrees=current.rotation_degrees,
+                heading_degrees=current.heading_degrees,
             )
 
     def end_session(self, session_id: str) -> None:

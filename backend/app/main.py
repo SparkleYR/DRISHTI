@@ -31,7 +31,8 @@ from app.explore.vlm_executor import VLMExecutor
 from app.perception.detector import Detector, UnavailableDetector, load_detector
 from app.perception.segmenter import Segmenter, UnavailableSegmenter, load_segmenter
 from app.perception.tracking import TrackingSessionStore
-from app.perception.target_tracking import TargetTrackingSessionStore
+from app.perception.landmark_memory import LandmarkMemoryStore
+from app.guidance.target_guidance import TargetGuidanceSessionStore
 from app.request_limits import AnalyzeBodyLimitMiddleware
 from app.risk.state_machine import RiskSessionStore
 from app.scheduling.latest_frame import LatestFrameScheduler
@@ -111,9 +112,13 @@ def create_app(
         centre_distance_threshold=settings.track_centre_distance_threshold,
         max_age_frames=settings.track_max_age_frames,
     )
-    app.state.target_tracking_sessions = TargetTrackingSessionStore(
-        confidence_threshold=settings.target_tracking_confidence_threshold,
+    app.state.landmark_memories = LandmarkMemoryStore(
+        ttl_seconds=settings.landmark_memory_ttl_seconds,
+        max_entries=settings.landmark_memory_max,
+        camera_hfov_degrees=settings.walk_camera_hfov_degrees,
+        allow_person=settings.landmark_allow_person,
     )
+    app.state.target_tracking_sessions = TargetGuidanceSessionStore(settings)
     app.state.risk_sessions = RiskSessionStore(settings)
     app.state.frame_scheduler = LatestFrameScheduler[FrameAnalysisResponse]()
     app.state.latest_frame_memory = LatestFrameMemory()

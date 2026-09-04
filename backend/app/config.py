@@ -79,6 +79,15 @@ class Settings(BaseSettings):
     target_tracking_confidence_threshold: float = Field(
         default=0.25, ge=0.0, le=1.0
     )
+    walk_camera_hfov_degrees: float = Field(default=67.0, gt=1.0, le=179.0)
+    landmark_memory_ttl_seconds: int = Field(default=45, ge=1, le=300)
+    landmark_memory_max: int = Field(default=24, ge=1, le=128)
+    landmark_allow_person: bool = False
+    target_turn_threshold_degrees: float = Field(default=25.0, gt=0.0, le=90.0)
+    target_face_tolerance_degrees: float = Field(default=10.0, ge=0.0, le=45.0)
+    target_reacquire_timeout_seconds: float = Field(default=8.0, gt=0.0, le=60.0)
+    target_arrived_dwell_seconds: float = Field(default=2.0, gt=0.0, le=30.0)
+    target_speech_interval_seconds: float = Field(default=4.0, ge=0.0, le=30.0)
     approach_change_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
     proximity_area_weight: float = Field(default=0.55, ge=0.0, le=1.0)
     proximity_area_scale: float = Field(default=0.50, gt=0.0, le=1.0)
@@ -177,6 +186,11 @@ class Settings(BaseSettings):
         if self.corridor_top_half_width >= self.corridor_bottom_half_width:
             raise ValueError(
                 "corridor_top_half_width must be below corridor_bottom_half_width"
+            )
+        if self.target_face_tolerance_degrees >= self.target_turn_threshold_degrees:
+            raise ValueError(
+                "target_face_tolerance_degrees must be below "
+                "target_turn_threshold_degrees"
             )
         if self.wall_side_ratio_threshold > self.wall_centre_ratio_threshold:
             raise ValueError(

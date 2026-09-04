@@ -188,9 +188,22 @@ export interface GuidanceContract {
 
 export type TargetTrackingState =
   | "IDLE"
-  | "LOCATING"
-  | "LOCKED_TRACKING"
-  | "TARGET_LOST";
+  | "SEEKING"
+  | "GUIDING"
+  | "ARRIVED"
+  | "LOST";
+
+export type TargetGuidanceStep =
+  | "NONE"
+  | "TURN_LEFT"
+  | "TURN_RIGHT"
+  | "KEEP_TURNING"
+  | "FACE_AND_WALK"
+  | "WALKING"
+  | "ARRIVED"
+  | "REACQUIRE";
+
+export type TargetRangeHint = "NEAR" | "MID" | "FAR" | "UNKNOWN";
 
 export type TargetHapticPattern =
   | "NONE"
@@ -201,7 +214,11 @@ export type TargetHapticPattern =
 export interface TargetTrackingTelemetry {
   tracking_state: TargetTrackingState;
   target_name: string | null;
-  clock_direction: string | null;
+  guidance_step: TargetGuidanceStep;
+  bearing_degrees: number | null;
+  range_hint: TargetRangeHint;
+  /** @deprecated Temporary compatibility bridge for the native client. */
+  clock_direction?: string | null;
   target_center: NormalizedPoint | null;
   confidence: number | null;
   is_safety_overridden: boolean;
@@ -508,7 +525,11 @@ export interface VLMLocateResponse {
   model: "moondream2";
   text: string;
   target: VLMLocatedTarget;
-  clock_direction: string;
+  bearing_degrees: number | null;
+  range_hint: TargetRangeHint;
+  resolved_from: "MEMORY" | "VLM";
+  /** @deprecated Temporary compatibility bridge for the native client. */
+  clock_direction?: string | null;
   tracking_allowed: boolean;
   source_frame_id: number | null;
   timings: VLMTimings;
