@@ -22,7 +22,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
  * [com.drishti.app.walk.WalkController.applyTargetTracking]).
  *
  * This call only speaks the one-shot confirmation, which the backend composes
- * ("Registration desk detected at 11 o'clock."); it is spoken verbatim.
+ * ("The towel is behind you on the right, turn around."); it is spoken verbatim.
  */
 class TargetLocator(
     private val api: DrishtiApi,

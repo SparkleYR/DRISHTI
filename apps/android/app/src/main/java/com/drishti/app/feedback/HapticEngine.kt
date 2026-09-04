@@ -69,6 +69,14 @@ class HapticEngine(context: Context) {
         vibrator.vibrate(effect)
     }
 
+    /** Distinct "you're there" confirmation: two firm taps. */
+    fun playTargetArrived() {
+        if (!enabled || !vibrator.hasVibrator()) return
+        vibrator.vibrate(
+            VibrationEffect.createWaveform(longArrayOf(0, 90, 80, 90), intArrayOf(0, 230, 0, 230), -1),
+        )
+    }
+
     private fun directionalDouble(action: GuidanceAction): VibrationEffect {
         // Symmetric base double-pulse; bias the opening gap toward the target side.
         val lead = when (action) {

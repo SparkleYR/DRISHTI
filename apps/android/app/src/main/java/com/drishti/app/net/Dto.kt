@@ -40,7 +40,11 @@ enum class HazardSeverity { LOW, MEDIUM, HIGH, CRITICAL }
 enum class HazardStatus { NEW, VERIFIED, ASSIGNED, IN_PROGRESS, RESOLVED, REJECTED }
 enum class OcrConfidenceQualification { HIGH, LOW, NONE }
 
-enum class TargetTrackingState { IDLE, LOCATING, LOCKED_TRACKING, TARGET_LOST }
+enum class TargetTrackingState { IDLE, SEEKING, GUIDING, ARRIVED, LOST }
+enum class TargetGuidanceStep {
+    NONE, TURN_LEFT, TURN_RIGHT, KEEP_TURNING, FACE_AND_WALK, WALKING, ARRIVED, REACQUIRE
+}
+enum class TargetRangeHint { NEAR, MID, FAR, UNKNOWN }
 enum class TargetHapticPattern { NONE, TARGET_LEFT_PULSE, TARGET_CENTRE_PULSE, TARGET_RIGHT_PULSE }
 
 // ---- Common geometry -----------------------------------------------------------
@@ -272,7 +276,10 @@ data class ReadTextResponse(
 data class TargetTrackingTelemetry(
     val trackingState: TargetTrackingState = TargetTrackingState.IDLE,
     val targetName: String? = null,
-    val clockDirection: String? = null,
+    val guidanceStep: TargetGuidanceStep = TargetGuidanceStep.NONE,
+    /** Signed angle to the target: negative = left, positive = right, ~0 = facing it. */
+    val bearingDegrees: Double? = null,
+    val rangeHint: TargetRangeHint = TargetRangeHint.UNKNOWN,
     val targetCenter: NormalizedPoint? = null,
     val confidence: Double? = null,
     val isSafetyOverridden: Boolean = false,
@@ -306,7 +313,10 @@ data class VlmLocateResponse(
     val model: String,
     val text: String,
     val target: VlmLocatedTarget,
-    val clockDirection: String,
+    val bearingDegrees: Double? = null,
+    val rangeHint: TargetRangeHint = TargetRangeHint.UNKNOWN,
+    /** "MEMORY" (landmark buffer) or "VLM" (Moondream2 fallback). */
+    val resolvedFrom: String? = null,
     val trackingAllowed: Boolean,
     val sourceFrameId: Int? = null,
     val timings: VlmTimings,

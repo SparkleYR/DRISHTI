@@ -445,9 +445,16 @@ class WalkController(
         } else if (!tt.speak) {
             lastTargetSpeech = null
         }
-        haptic.playTarget(tt.hapticPattern)
+        if (tt.trackingState == TargetTrackingState.ARRIVED ||
+            tt.guidanceStep == com.drishti.app.net.TargetGuidanceStep.ARRIVED
+        ) {
+            haptic.playTargetArrived()
+        } else {
+            haptic.playTarget(tt.hapticPattern)
+        }
+        // Pan the audio beacon to the live target box only while actively guiding.
         spatial.targetPan(
-            if (tt.trackingState == TargetTrackingState.LOCKED_TRACKING) {
+            if (tt.trackingState == TargetTrackingState.GUIDING) {
                 tt.targetCenter?.x?.toFloat()
             } else {
                 null
