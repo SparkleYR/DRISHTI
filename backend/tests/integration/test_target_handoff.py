@@ -209,7 +209,9 @@ def test_recent_detector_landmark_bypasses_vlm(settings: Settings) -> None:
     app, test_client = make_client(settings, vlm, detector)
     with test_client as client:
         session_id = client.post("/api/v1/walk/sessions", json={}).json()["session_id"]
+        # `landmark_min_sightings` frames before the entry is resolvable (D-078).
         assert analyze(client, session_id, 2).status_code == 200
+        assert analyze(client, session_id, 3).status_code == 200
         response = client.post(
             "/api/v1/vlm/locate",
             params={"target_name": "the chair", "session_id": session_id},
@@ -225,6 +227,90 @@ def test_recent_detector_landmark_bypasses_vlm(settings: Settings) -> None:
         assert ended.status_code == 200
 
     assert app.state.landmark_memories.count(session_id, now_ms=10_000) == 0
+
+
+def test_full_coco_landmark_resolves_from_memory_without_reaching_the_contract(
+    settings: Settings,
+) -> None:
+    """A bottle is guidance-eligible but never a risk detection (D-078)."""
+    detector = ReadyTestDetector(
+        detections=[
+            DetectionCandidate(
+                label="chair", confidence=0.92, x1=0.10, y1=0.25, x2=0.30, y2=0.70
+            )
+        ],
+        all_detections=[
+            DetectionCandidate(
+                label="chair", confidence=0.92, x1=0.10, y1=0.25, x2=0.30, y2=0.70
+            ),
+            DetectionCandidate(
+                label="bottle", confidence=0.88, x1=0.55, y1=0.40, x2=0.65, y2=0.62
+            ),
+        ],
+    )
+    vlm = RecordingVLM()
+    _app, test_client = make_client(settings, vlm, detector)
+    with test_client as client:
+        session_id = client.post("/api/v1/walk/sessions", json={}).json()["session_id"]
+        first = analyze(client, session_id, 0)
+        assert first.status_code == 200, first.text
+        assert analyze(client, session_id, 1).status_code == 200
+
+        response = client.post(
+            "/api/v1/vlm/locate",
+            params={"target_name": "the blue bottle", "session_id": session_id},
+        )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["resolved_from"] == "MEMORY"
+    assert payload["tracking_allowed"] is True
+    assert vlm.call_count == 0
+
+    # The wire contract still carries only the audited risk whitelist.
+    labels = [item["label"] for item in first.json()["detections"]]
+    assert labels == ["chair"]
+
+
+def test_single_frame_flicker_is_not_guidance_eligible(settings: Settings) -> None:
+    detector = ReadyTestDetector(
+        detections=[],
+        all_detections=[
+            DetectionCandidate(
+                label="bottle", confidence=0.88, x1=0.55, y1=0.40, x2=0.65, y2=0.62
+            )
+        ],
+    )
+    vlm = RecordingVLM()
+    _app, test_client = make_client(settings, vlm, detector)
+    with test_client as client:
+        session_id = client.post("/api/v1/walk/sessions", json={}).json()["session_id"]
+        assert analyze(client, session_id, 0).status_code == 200
+        response = client.post(
+            "/api/v1/vlm/locate",
+            params={"target_name": "bottle", "session_id": session_id},
+        )
+
+    # One sighting falls through to the VLM rather than seeding guidance.
+    assert response.status_code == 200, response.text
+    assert response.json()["resolved_from"] == "VLM"
+    assert vlm.call_count == 1
+
+
+def test_locate_refuses_to_guide_toward_a_person(settings: Settings) -> None:
+    vlm = RecordingVLM()
+    _app, test_client = make_client(settings, vlm)
+    with test_client as client:
+        session_id = client.post("/api/v1/walk/sessions", json={}).json()["session_id"]
+        assert analyze(client, session_id, 0).status_code == 200
+        response = client.post(
+            "/api/v1/vlm/locate",
+            params={"target_name": "the person", "session_id": session_id},
+        )
+
+    assert response.status_code == 404, response.text
+    assert response.json()["error"]["message"] == "I can't guide you to a person."
+    assert vlm.call_count == 0
 
 
 def test_locate_accepts_base64_snapshot(settings: Settings) -> None:

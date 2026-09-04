@@ -4,26 +4,24 @@ import pytest
 
 from app.config import Settings
 from app.guidance.target_guidance import TargetGuidanceSessionStore, range_hint, relative_bearing
+from app.perception.detector import DetectionCandidate
 from app.perception.landmark_memory import Landmark, LandmarkMemoryStore, labels_match, wrap180
 from app.risk.priority import safety_preempts_target_guidance
 from app.risk.state_machine import StableDecision
 from app.schemas.walk import (
-    ApproachState, CorridorChoice, DetectionResult, Direction, DisplayColor,
-    GuidanceAction, NormalizedBoundingBox, NormalizedPoint, ProximityBand,
-    RiskLevel, TargetGuidanceStep, TargetHapticPattern, TargetRangeHint,
-    TargetTrackingState,
+    CorridorChoice, GuidanceAction, RiskLevel, TargetGuidanceStep,
+    TargetHapticPattern, TargetRangeHint, TargetTrackingState,
 )
 
 
-def detection(label: str, box: tuple[float, float, float, float]) -> DetectionResult:
+def detection(
+    label: str,
+    box: tuple[float, float, float, float],
+    confidence: float = 0.9,
+) -> DetectionCandidate:
     x1, y1, x2, y2 = box
-    return DetectionResult(
-        label=label, confidence=0.9,
-        bbox=NormalizedBoundingBox(x1=x1, y1=y1, x2=x2, y2=y2),
-        anchor=NormalizedPoint(x=(x1 + x2) / 2, y=y2),
-        direction=Direction.CENTRE, proximity=ProximityBand.MEDIUM,
-        approach_state=ApproachState.UNKNOWN, path_overlap=0.0, risk_score=0.0,
-        risk_level=RiskLevel.CLEAR, display_color=DisplayColor.GREEN,
+    return DetectionCandidate(
+        label=label, confidence=confidence, x1=x1, y1=y1, x2=x2, y2=y2,
     )
 
 
@@ -111,6 +109,33 @@ def test_live_detection_reacquires_without_heading_and_reports_coarse_range() ->
     assert telemetry.range_hint == TargetRangeHint.MID
     assert range_hint((0.2, 0.2, 0.8, 0.95)) == TargetRangeHint.NEAR
     assert relative_bearing(landmark(bearing=None), None, (0.25, 0.5)) == pytest.approx(-16.75)
+
+
+def test_weak_false_positive_does_not_hijack_reacquisition() -> None:
+    settings = Settings(_env_file=None, landmark_min_confidence=0.45)
+    store = TargetGuidanceSessionStore(settings)
+    store.start_session("session")
+    store.start_guidance(
+        "session", target_name="chair", landmark=landmark(bearing=None),
+        now_ms=1_000, heading_degrees=None, visible=False,
+    )
+    weak = store.step(
+        "session", now_ms=1_100, heading_degrees=None,
+        detections=[detection("chair", (0.80, 0.20, 0.95, 0.50), confidence=0.36)],
+        is_safety_overridden=False, haptics_enabled=True,
+    )
+    # The weak box is ignored: nothing is re-acquired and the state stays SEEKING.
+    assert weak.target_center is None
+    assert weak.tracking_state == TargetTrackingState.SEEKING
+
+    strong = store.step(
+        "session", now_ms=1_200, heading_degrees=None,
+        detections=[detection("chair", (0.80, 0.20, 0.95, 0.50), confidence=0.46)],
+        is_safety_overridden=False, haptics_enabled=True,
+    )
+    # The same box above the floor does re-acquire.
+    assert strong.target_center is not None
+    assert strong.tracking_state == TargetTrackingState.GUIDING
 
 
 @pytest.mark.parametrize("action", list(GuidanceAction))

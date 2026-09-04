@@ -81,8 +81,11 @@ class Settings(BaseSettings):
     )
     walk_camera_hfov_degrees: float = Field(default=67.0, gt=1.0, le=179.0)
     landmark_memory_ttl_seconds: int = Field(default=45, ge=1, le=300)
-    landmark_memory_max: int = Field(default=24, ge=1, le=128)
+    landmark_memory_max: int = Field(default=40, ge=1, le=128)
     landmark_allow_person: bool = False
+    landmark_full_coco: bool = True
+    landmark_min_confidence: float = Field(default=0.45, ge=0.0, le=1.0)
+    landmark_min_sightings: int = Field(default=2, ge=1, le=10)
     target_turn_threshold_degrees: float = Field(default=25.0, gt=0.0, le=90.0)
     target_face_tolerance_degrees: float = Field(default=10.0, ge=0.0, le=45.0)
     target_reacquire_timeout_seconds: float = Field(default=8.0, gt=0.0, le=60.0)

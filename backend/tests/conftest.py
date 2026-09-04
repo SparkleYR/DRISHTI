@@ -15,13 +15,20 @@ from app.db.models import Base
 from app.main import create_app
 from app.explore.ocr import OCRResult
 from app.explore.local_vlm import VLMLocationResult, VLMResult
-from app.perception.detector import DetectionCandidate
+from app.perception.detector import DetectionCandidate, DetectionSet
 from app.perception.segmenter import SegmentationFrame
 
 
 class ReadyTestDetector:
-    def __init__(self, detections: list[DetectionCandidate] | None = None) -> None:
+    def __init__(
+        self,
+        detections: list[DetectionCandidate] | None = None,
+        all_detections: list[DetectionCandidate] | None = None,
+    ) -> None:
         self.detections = detections or []
+        # Defaults to the risk list so tests that only set `detections` keep
+        # exercising both filterings with the same boxes (D-078).
+        self.all_detections = all_detections
         self.call_count = 0
 
     @property
@@ -32,9 +39,10 @@ class ReadyTestDetector:
     def detail(self) -> str:
         return "Test detector ready."
 
-    def detect(self, _image) -> list[DetectionCandidate]:
+    def detect(self, _image) -> DetectionSet:
         self.call_count += 1
-        return list(self.detections)
+        full = self.detections if self.all_detections is None else self.all_detections
+        return DetectionSet(risk=list(self.detections), all=list(full))
 
 
 class ReadyTestSegmenter:

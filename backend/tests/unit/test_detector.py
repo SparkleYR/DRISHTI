@@ -80,6 +80,60 @@ def test_clamps_model_rounding_at_image_edges() -> None:
     assert (result[0].x2, result[0].y2) == (1.0, 1.0)
 
 
+def test_full_coco_set_keeps_native_labels_and_skips_aliases() -> None:
+    result = canonicalize_detections(
+        [
+            RawDetection("bottle", 0.8, 1, 1, 9, 9),
+            RawDetection("cell phone", 0.7, 1, 1, 9, 9),
+            RawDetection("backpack", 0.8, 1, 1, 9, 9),
+            RawDetection("dining table", 0.85, 1, 1, 9, 9),
+            RawDetection("dog", 0.99, 1, 1, 9, 9),
+        ],
+        width=10,
+        height=10,
+        confidence_threshold=0.35,
+        allowed_labels=None,
+        apply_aliases=False,
+    )
+
+    # Native COCO labels survive: aliasing would discard the word a user says.
+    assert [item.label for item in result] == [
+        "bottle",
+        "cell phone",
+        "backpack",
+        "dining table",
+        "dog",
+    ]
+
+
+def test_full_coco_set_still_enforces_threshold_and_box_guards() -> None:
+    result = canonicalize_detections(
+        [
+            RawDetection("bottle", 0.34, 1, 1, 9, 9),
+            RawDetection("cup", 0.9, 9, 1, 1, 9),
+            RawDetection("book", float("inf"), 1, 1, 9, 9),
+        ],
+        width=10,
+        height=10,
+        confidence_threshold=0.35,
+        allowed_labels=None,
+        apply_aliases=False,
+    )
+    assert result == []
+
+
+def test_risk_whitelist_is_unchanged_by_the_full_set_parameters() -> None:
+    raw = [
+        RawDetection("bottle", 0.9, 1, 1, 9, 9),
+        RawDetection("backpack", 0.9, 1, 1, 9, 9),
+        RawDetection("chair", 0.9, 1, 1, 9, 9),
+    ]
+    result = canonicalize_detections(
+        raw, width=10, height=10, confidence_threshold=0.35
+    )
+    assert [item.label for item in result] == ["bag", "chair"]
+
+
 def test_rejects_invalid_image_dimensions() -> None:
     with pytest.raises(ValueError, match="positive"):
         canonicalize_detections([], width=0, height=10, confidence_threshold=0.35)

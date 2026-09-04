@@ -117,6 +117,8 @@ def create_app(
         max_entries=settings.landmark_memory_max,
         camera_hfov_degrees=settings.walk_camera_hfov_degrees,
         allow_person=settings.landmark_allow_person,
+        min_confidence=settings.landmark_min_confidence,
+        min_sightings=settings.landmark_min_sightings,
     )
     app.state.target_tracking_sessions = TargetGuidanceSessionStore(settings)
     app.state.risk_sessions = RiskSessionStore(settings)

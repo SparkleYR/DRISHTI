@@ -25,7 +25,7 @@ from app.guidance.target_guidance import (
     guidance_text,
     range_hint,
 )
-from app.perception.landmark_memory import LandmarkMemoryStore
+from app.perception.landmark_memory import LandmarkMemoryStore, normalize_label
 from app.scheduling.frame_memory import LatestFrameMemory
 from app.schemas.vlm import (
     VLMLocatedTarget,
@@ -65,6 +65,15 @@ async def locate_vlm_target(
         request.app.state.target_tracking_sessions
     )
     settings: Settings = request.app.state.settings
+    # `remember()` writes straight past the person filter that `observe()`
+    # applies, so refuse the request outright rather than seeding a landmark
+    # and guiding a user toward a specific person (D-073 §4, D-078).
+    if normalize_label(target_name) == "person" and not settings.landmark_allow_person:
+        raise AppError(
+            ErrorCode.NOT_FOUND,
+            "I can't guide you to a person.",
+            status_code=404,
+        )
     landmark_memories: LandmarkMemoryStore = request.app.state.landmark_memories
     if session_id is not None:
         remembered = landmark_memories.resolve(
@@ -176,7 +185,8 @@ async def locate_vlm_target(
             target_sessions.fail_seeking(session_id, target_name)
         raise AppError(
             ErrorCode.NOT_FOUND,
-            f"I haven't seen a {target_name} recently — face it and ask again.",
+            f"I can't find a {target_name} nearby. "
+            "I can only guide you to things I can recognise.",
             status_code=404,
         ) from exc
     except VLMResourceError as exc:

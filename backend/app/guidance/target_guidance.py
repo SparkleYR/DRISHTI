@@ -4,9 +4,9 @@ from dataclasses import dataclass, replace
 from threading import RLock
 
 from app.config import Settings
+from app.perception.detector import DetectionCandidate
 from app.perception.landmark_memory import Landmark, labels_match, wrap180
 from app.schemas.walk import (
-    DetectionResult,
     NormalizedPoint,
     TargetGuidanceStep,
     TargetHapticPattern,
@@ -111,7 +111,7 @@ class TargetGuidanceSessionStore:
         *,
         now_ms: int,
         heading_degrees: float | None,
-        detections: list[DetectionResult],
+        detections: list[DetectionCandidate],
         is_safety_overridden: bool,
         haptics_enabled: bool,
     ) -> TargetTrackingTelemetry:
@@ -133,9 +133,13 @@ class TargetGuidanceSessionStore:
                     session.lost_announcement_pending = False
                 return _telemetry(session, speech=speech, speak=speak)
 
-            match = _latest_match(session.target_name or session.landmark.label, detections)
+            match = _latest_match(
+                session.target_name or session.landmark.label,
+                detections,
+                min_confidence=self._settings.landmark_min_confidence,
+            )
             if match is not None:
-                box = (match.bbox.x1, match.bbox.y1, match.bbox.x2, match.bbox.y2)
+                box = (match.x1, match.y1, match.x2, match.y2)
                 center = ((box[0] + box[2]) / 2.0, (box[1] + box[3]) / 2.0)
                 world_bearing = (
                     wrap180(heading_degrees + (center[0] - 0.5) * self._settings.walk_camera_hfov_degrees)
@@ -291,8 +295,23 @@ def compatibility_clock_direction(center_x: float | None) -> str | None:
     return f"{hour} o'clock"
 
 
-def _latest_match(target_name: str, detections: list[DetectionResult]) -> DetectionResult | None:
-    matches = [item for item in detections if labels_match(target_name, item.label)]
+def _latest_match(
+    target_name: str,
+    detections: list[DetectionCandidate],
+    *,
+    min_confidence: float = 0.0,
+) -> DetectionCandidate | None:
+    """Pick the strongest live box for the guided target.
+
+    The full COCO stream carries the detector's whole low-confidence tail
+    (D-078), so re-acquisition applies the same floor landmark memory does —
+    otherwise a weak false positive could pull guidance off the real target.
+    """
+    matches = [
+        item
+        for item in detections
+        if item.confidence >= min_confidence and labels_match(target_name, item.label)
+    ]
     return max(matches, key=lambda item: item.confidence, default=None)
 
 

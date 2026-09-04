@@ -53,11 +53,17 @@ def test_real_cuda_models_run_offline_through_api(
     assert "ADE20K" in segmenter.detail
     assert os.environ["YOLO_OFFLINE"] == "True"
     assert image is not None
-    detections = detector.detect(image)
+    detected = detector.detect(image)
+    detections = detected.risk
     labels = {detection.label for detection in detections}
     assert {"person", "bus"} <= labels
     assert all(0 <= value <= 1 for item in detections for value in (item.x1, item.y1, item.x2, item.y2))
     assert all(item.x1 < item.x2 and item.y1 < item.y2 for item in detections)
+    # The full COCO set is a superset of the risk set and keeps native labels
+    # (no `bag`/`desk` aliasing), from the same forward pass (D-078).
+    assert len(detected.all) >= len(detections)
+    assert {"person", "bus"} <= {item.label for item in detected.all}
+    assert all(item.x1 < item.x2 and item.y1 < item.y2 for item in detected.all)
 
     app = create_app(
         settings,

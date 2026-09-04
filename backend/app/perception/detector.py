@@ -66,6 +66,19 @@ class DetectionCandidate:
     y2: float
 
 
+@dataclass(frozen=True)
+class DetectionSet:
+    """Two label filterings of a single YOLO11n forward pass (D-078).
+
+    ``risk`` is the audited ``CANONICAL_LABELS`` whitelist that feeds tracking,
+    spatial reasoning, risk scoring, and the AR overlay. ``all`` is the complete
+    COCO output with native labels, and feeds landmark memory only.
+    """
+
+    risk: list[DetectionCandidate]
+    all: list[DetectionCandidate]
+
+
 @runtime_checkable
 class Detector(Protocol):
     @property
@@ -74,7 +87,7 @@ class Detector(Protocol):
     @property
     def detail(self) -> str: ...
 
-    def detect(self, image: np.ndarray) -> list[DetectionCandidate]: ...
+    def detect(self, image: np.ndarray) -> DetectionSet: ...
 
 
 class UnavailableDetector:
@@ -89,7 +102,7 @@ class UnavailableDetector:
     def detail(self) -> str:
         return self._detail
 
-    def detect(self, image: np.ndarray) -> list[DetectionCandidate]:
+    def detect(self, image: np.ndarray) -> DetectionSet:
         del image
         raise RuntimeError(self._detail)
 
@@ -119,7 +132,7 @@ class UltralyticsDetector:
     def detail(self) -> str:
         return f"YOLO11n ready on {self._device_name}."
 
-    def detect(self, image: np.ndarray) -> list[DetectionCandidate]:
+    def detect(self, image: np.ndarray) -> DetectionSet:
         with self._lock:
             results = self._model.predict(
                 source=image,
@@ -129,12 +142,12 @@ class UltralyticsDetector:
                 verbose=False,
             )
         if not results:
-            return []
+            return DetectionSet(risk=[], all=[])
 
         result = results[0]
         boxes = result.boxes
         if boxes is None:
-            return []
+            return DetectionSet(risk=[], all=[])
         names = result.names
         raw = [
             RawDetection(
@@ -153,11 +166,21 @@ class UltralyticsDetector:
             )
         ]
         height, width = image.shape[:2]
-        return canonicalize_detections(
-            raw,
-            width=width,
-            height=height,
-            confidence_threshold=self._confidence_threshold,
+        return DetectionSet(
+            risk=canonicalize_detections(
+                raw,
+                width=width,
+                height=height,
+                confidence_threshold=self._confidence_threshold,
+            ),
+            all=canonicalize_detections(
+                raw,
+                width=width,
+                height=height,
+                confidence_threshold=self._confidence_threshold,
+                allowed_labels=None,
+                apply_aliases=False,
+            ),
         )
 
 
@@ -167,7 +190,16 @@ def canonicalize_detections(
     width: int,
     height: int,
     confidence_threshold: float,
+    allowed_labels: frozenset[str] | None = CANONICAL_LABELS,
+    apply_aliases: bool = True,
 ) -> list[DetectionCandidate]:
+    """Normalize raw boxes to the unit square.
+
+    ``allowed_labels=None`` keeps every above-threshold class. ``apply_aliases``
+    must be ``False`` for that full set: the aliases collapse ``backpack`` and
+    ``handbag`` into ``bag`` and ``dining table`` into ``desk``, which discards
+    the exact word a user says when asking to be guided to one (D-078).
+    """
     if width <= 0 or height <= 0:
         raise ValueError("Detection image dimensions must be positive.")
 
@@ -184,8 +216,12 @@ def canonicalize_detections(
             )
         ):
             continue
-        label = LABEL_ALIASES.get(item.label.lower(), item.label.lower())
-        if label not in CANONICAL_LABELS or item.confidence < confidence_threshold:
+        label = item.label.lower()
+        if apply_aliases:
+            label = LABEL_ALIASES.get(label, label)
+        if allowed_labels is not None and label not in allowed_labels:
+            continue
+        if item.confidence < confidence_threshold:
             continue
         x1 = _clamp(item.x1 / width)
         y1 = _clamp(item.y1 / height)

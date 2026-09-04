@@ -274,7 +274,7 @@ async def _process_accepted_frame(
 
     detection_started = perf_counter()
     try:
-        candidates = await run_in_threadpool(detector.detect, decoded.image)
+        detected = await run_in_threadpool(detector.detect, decoded.image)
     except Exception as exc:
         raise AppError(
             ErrorCode.MODEL_NOT_READY,
@@ -284,6 +284,10 @@ async def _process_accepted_frame(
             details={"reason": type(exc).__name__},
         ) from exc
     detection_ms = (perf_counter() - detection_started) * 1000
+    candidates = detected.risk
+    # Landmark memory sees the full COCO output; the risk engine, the tracker,
+    # the spatial stage, and the overlay keep the audited whitelist (D-078).
+    observations = detected.all if settings.landmark_full_coco else detected.risk
 
     segmenter: Segmenter = request.app.state.segmenter
     segmentation: SegmentationFrame | None = None
@@ -358,7 +362,7 @@ async def _process_accepted_frame(
         session_id,
         now_ms=now_ms,
         heading_degrees=heading_degrees,
-        detections=detections,
+        detections=observations,
     )
     target_sessions: TargetGuidanceSessionStore = (
         request.app.state.target_tracking_sessions
@@ -367,7 +371,7 @@ async def _process_accepted_frame(
         session_id,
         now_ms=now_ms,
         heading_degrees=heading_degrees,
-        detections=detections,
+        detections=observations,
         is_safety_overridden=safety_preempts_target_guidance(decision),
         haptics_enabled=haptics_enabled,
     )

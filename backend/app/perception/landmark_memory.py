@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from threading import RLock
 
-from app.schemas.walk import DetectionResult
+from app.perception.detector import DetectionCandidate
 
 
 NormalizedBox = tuple[float, float, float, float]
@@ -33,12 +33,16 @@ class LandmarkMemoryStore:
         camera_hfov_degrees: float,
         allow_person: bool = False,
         bearing_gate_degrees: float = 25.0,
+        min_confidence: float = 0.0,
+        min_sightings: int = 1,
     ) -> None:
         self._ttl_ms = ttl_seconds * 1000
         self._max_entries = max_entries
         self._hfov = camera_hfov_degrees
         self._allow_person = allow_person
         self._bearing_gate = bearing_gate_degrees
+        self._min_confidence = min_confidence
+        self._min_sightings = min_sightings
         self._sessions: dict[str, list[Landmark]] = {}
         self._lock = RLock()
 
@@ -56,20 +60,24 @@ class LandmarkMemoryStore:
         *,
         now_ms: int,
         heading_degrees: float | None,
-        detections: list[DetectionResult],
+        detections: list[DetectionCandidate],
     ) -> None:
+        """Fold one frame of detector candidates into the session's memory.
+
+        Only ``label``, ``confidence``, and the box are read, so this takes raw
+        detector candidates rather than risk-assessed ``DetectionResult``s: the
+        full COCO stream never passes through tracking, spatial, or scoring
+        (D-078).
+        """
         with self._lock:
             entries = self._sessions.setdefault(session_id, [])
             self._expire(entries, now_ms)
             for detection in detections:
+                if detection.confidence < self._min_confidence:
+                    continue
                 if detection.label.lower() == "person" and not self._allow_person:
                     continue
-                box = (
-                    detection.bbox.x1,
-                    detection.bbox.y1,
-                    detection.bbox.x2,
-                    detection.bbox.y2,
-                )
+                box = (detection.x1, detection.y1, detection.x2, detection.y2)
                 self._remember(entries, detection.label, now_ms, heading_degrees, box)
             self._trim(entries)
 
@@ -85,7 +93,14 @@ class LandmarkMemoryStore:
         with self._lock:
             entries = self._sessions.setdefault(session_id, [])
             self._expire(entries, now_ms)
-            result = self._remember(entries, label, now_ms, heading_degrees, box)
+            result = self._remember(
+                entries,
+                label,
+                now_ms,
+                heading_degrees,
+                box,
+                seed_sightings=self._min_sightings,
+            )
             self._trim(entries)
             return replace(result)
 
@@ -94,7 +109,12 @@ class LandmarkMemoryStore:
         with self._lock:
             entries = self._sessions.setdefault(session_id, [])
             self._expire(entries, now_ms)
-            matches = [entry for entry in entries if labels_match(target, entry.label)]
+            matches = [
+                entry
+                for entry in entries
+                if entry.sightings >= self._min_sightings
+                and labels_match(target, entry.label)
+            ]
             if not matches:
                 return None
             return replace(max(matches, key=lambda item: item.last_seen_ms))
@@ -112,6 +132,8 @@ class LandmarkMemoryStore:
         now_ms: int,
         heading_degrees: float | None,
         box: NormalizedBox,
+        *,
+        seed_sightings: int = 1,
     ) -> Landmark:
         canonical = normalize_label(label)
         center_x = (box[0] + box[2]) / 2.0
@@ -141,6 +163,18 @@ class LandmarkMemoryStore:
                         wrap180(world_bearing - (pair[1].world_bearing_deg or 0.0))
                     ),
                 )
+            else:
+                # A session that started without a heading holds bearing-less
+                # entries. Adopt the most recent one instead of duplicating the
+                # object and resetting its sightings on the first frame that
+                # carries a heading (D-078).
+                bearingless = [
+                    pair for pair in same_label if pair[1].world_bearing_deg is None
+                ]
+                if bearingless:
+                    candidate = max(
+                        bearingless, key=lambda pair: pair[1].last_seen_ms
+                    )
         elif same_label:
             candidate = max(same_label, key=lambda pair: pair[1].last_seen_ms)
 
@@ -154,7 +188,7 @@ class LandmarkMemoryStore:
                 last_box=box,
                 first_seen_ms=now_ms,
                 last_seen_ms=now_ms,
-                sightings=1,
+                sightings=seed_sightings,
             )
             entries.append(landmark)
             return landmark
@@ -169,7 +203,7 @@ class LandmarkMemoryStore:
             last_box=box,
             first_seen_ms=previous.first_seen_ms,
             last_seen_ms=now_ms,
-            sightings=previous.sightings + 1,
+            sightings=max(previous.sightings + 1, seed_sightings),
         )
         entries[index] = landmark
         return landmark
@@ -183,12 +217,58 @@ class LandmarkMemoryStore:
             del entries[self._max_entries :]
 
 
+_COLOUR_WORDS = frozenset(
+    {
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "blue",
+        "purple",
+        "pink",
+        "brown",
+        "black",
+        "white",
+        "grey",
+        "gray",
+        "silver",
+        "gold",
+    }
+)
+
+
+_LEADING_NOISE = (
+    frozenset(
+        {
+            "a",
+            "an",
+            "the",
+            "my",
+            "our",
+            "your",
+            "his",
+            "her",
+            "their",
+            "some",
+            "that",
+            "this",
+        }
+    )
+    | _COLOUR_WORDS
+)
+
+
 def normalize_label(value: str) -> str:
-    normalized = " ".join(value.lower().strip().split())
-    for article in ("a ", "an ", "the "):
-        if normalized.startswith(article):
-            return normalized[len(article) :]
-    return normalized
+    """Reduce a spoken target or a detector label to a comparable noun phrase.
+
+    Articles, possessives, and colours are dropped from the front only while a
+    noun survives: "orange" is both a colour and a COCO class, and an empty
+    target matches nothing usefully (D-078).
+    """
+    tokens = " ".join(value.lower().strip().split()).split()
+    while len(tokens) > 1 and tokens[0] in _LEADING_NOISE:
+        tokens = tokens[1:]
+    return " ".join(tokens)
 
 
 _SYNONYMS = {
@@ -196,6 +276,17 @@ _SYNONYMS = {
     "fridge": "refrigerator",
     "tv": "television",
     "plant": "potted plant",
+    # Reach the risk set's aliased labels by the word a user actually says.
+    "backpack": "bag",
+    "handbag": "bag",
+    "dining table": "desk",
+    "table": "desk",
+    # Common spoken forms of COCO classes the full set now remembers.
+    "phone": "cell phone",
+    "mobile": "cell phone",
+    "glass": "wine glass",
+    "mug": "cup",
+    "remote control": "remote",
 }
 
 

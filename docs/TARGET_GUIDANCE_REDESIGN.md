@@ -2,7 +2,8 @@
 
 - Plan version: `target-guidance/2.0.0`
 - Raised: 2026-09-04
-- Status: **Accepted — backend implementation in progress; native client update pending**
+- Status: **Accepted — §1–§11 implemented and green on the backend;
+  native client update (§8) pending**
 - Supersedes the Ask→Lock→Guide behaviour accepted in D-069/D-070/D-072 (the
   endpoints and telemetry channel stay; the resolver, the tracker, and the
   spoken output change).
@@ -224,6 +225,8 @@ Add to `Settings`, all unvalidated engineering defaults in the D-039 tradition:
 | `target_arrived_dwell_seconds` | `2.0` | NEAR + centred this long → `ARRIVED` |
 | `target_speech_interval_seconds` | `4.0` | Min gap between unchanged-step lines |
 
+Amendment A adds four more keys — see §11.7.
+
 ## 8. Android client changes (pending coordinated client pass)
 
 The backend pass does not modify `apps/android`. Until this section lands, the
@@ -293,77 +296,251 @@ one coordinated change.
 
 - Amendment version: `target-guidance/2.1.0`
 - Raised: 2026-09-04 after `target_name=blue bottle` returned 404 in the field
-- Status: **Proposed — needs D-078 sign-off**
+- Revised: 2026-09-04 after a backend code audit against `main` (6a39561). The
+  audit corrected three factual errors and one infeasible instruction in the
+  first draft; §11.11 lists what changed and why.
+- Status: **Accepted and implemented** — D-078 is recorded in
+  `docs/DECISIONS.md`. Backend suite: 189 passed, 1 skipped (the skip is the
+  external controlled-fixture gate, unchanged).
+- Baseline: §1–§10 (`target-guidance/2.0.0`) were implemented and green on
+  `main` (6a39561, 175 backend tests) before this amendment landed. §8 (the
+  Android client pass) remains the only outstanding work in this document.
 
-### Problem
+### 11.1 Problem
 
-`LandmarkMemoryStore.observe()` is fed `detections: list[DetectionResult]` — the
-**risk-filtered `CANONICAL_LABELS` set** (19 classes: chair, door, bed, tv,
-couch, refrigerator, sink, toilet, bench, desk, bag, suitcase, umbrella, potted
-plant, bicycle, motorcycle, car, bus, person). Everything else YOLO11n detects is
-discarded in `canonicalize_detections` before it can be remembered.
+`LandmarkMemoryStore.observe()` is fed the `detections` list built in
+`_process_accepted_frame` from `RiskAssessment`s — i.e. the **risk-filtered
+`CANONICAL_LABELS` set** (19 classes: chair, door, bed, tv, couch, refrigerator,
+sink, toilet, bench, desk, bag, suitcase, umbrella, potted plant, bicycle,
+motorcycle, car, bus, person). Everything else YOLO11n detects is discarded in
+`canonicalize_detections` before it can be remembered.
 
 The things users actually ask an assistant to find — **bottle, cup, bowl, wine
-glass, laptop, cell phone, keyboard, mouse, remote, book, clock, vase,
-backpack, handbag, tie, scissors, teddy bear, toothbrush, hair drier,
-microwave, oven, toaster, dining table** — are all standard COCO classes and are
-all currently thrown away. For any of them the memory path is structurally
-unavailable and resolution falls to the Moondream2 fallback, whose unreliability
-on cluttered real scenes is the reason this redesign exists. Result: "find the
-blue bottle" → memory miss → VLM miss → 404, every time.
+glass, laptop, cell phone, keyboard, mouse, remote, book, clock, vase, tie,
+scissors, teddy bear, toothbrush, hair drier, microwave, oven, toaster** — are
+all standard COCO classes and are all currently thrown away. For any of them the
+memory path is structurally unavailable and resolution falls to the Moondream2
+fallback, whose unreliability on cluttered real scenes is the reason this
+redesign exists. Result: "find the blue bottle" → memory miss → VLM miss → 404,
+every time.
 
-### D-078 (proposed)
+**Correction to the first draft.** `backpack`, `handbag`, and `dining table` are
+*not* discarded — `LABEL_ALIASES` maps them to `bag`, `bag`, and `desk`, so they
+are remembered under a coarser label. They fail for a different reason:
+`labels_match("backpack", "bag")` is `False` (no shared token, no synonym
+entry), so "find my backpack" misses a landmark that *is* in memory. §11.6
+fixes that separately from the whitelist widening.
+
+### 11.2 D-078 (proposed)
 
 The landmark buffer is populated from the **complete COCO detector output**, not
-the risk whitelist. The continuous risk engine and the AR overlay keep the
-existing 19-class filtered set unchanged (`HALL_HAZARD_LABELS_V1`, D-053 hold).
-One YOLO11n forward pass per frame; two label filterings of its raw output.
+the risk whitelist. The continuous risk engine, the tracker, the spatial stage,
+and the AR overlay keep the existing 19-class filtered set unchanged
+(`HALL_HAZARD_LABELS_V1`; D-053 and D-066 hold). One YOLO11n forward pass per
+frame; two label filterings of its raw output.
 
-### Backend changes
+A landmark becomes **resolvable** only after it clears a confidence floor and
+has been seen in at least two processed frames (§11.5). At the default 2 fps
+capture cadence that is ~1 s of visibility, so an object held in view for the
+2–4 s a demo takes clears the gate with 3–4× margin, while a single-frame
+detector flicker does not.
 
-1. **`app/perception/detector.py`**
-   - `canonicalize_detections(..., allowed_labels: frozenset[str] | None = CANONICAL_LABELS)`.
-     `None` → keep every finite, above-threshold box with its native COCO label
-     (still lower-cased, still `LABEL_ALIASES`-normalized). Box normalization,
-     clamping, and the `x1<x2 / y1<y2` guard are unchanged.
-   - `UltralyticsDetector.detect()` returns the risk set as today **and** exposes
-     the full set from the *same* `raw` list. Preferred shape: return a small
-     dataclass `DetectionSet(risk: list[DetectionCandidate], all: list[DetectionCandidate])`
-     from `detect()`, or add `detect_all()` that reuses a cached `raw` under the
-     existing single-worker lock. No second GPU inference.
-   - `UnavailableDetector` mirrors whichever shape is chosen.
+### 11.3 Backend changes — detector (`app/perception/detector.py`)
 
-2. **`app/api/walk.py` `_process_accepted_frame`**
-   - Feed `landmark_memories.observe(...)` and the memory-backed re-acquire in
-     `TargetGuidanceSessionStore.step(...)` the **full** candidate list
-     (mapped to `DetectionResult` the same way the risk list is).
-   - `detections` returned in `FrameAnalysisResponse` and everything the risk
-     engine / overlay consume stay the **filtered** list. No contract change to
-     `FrameAnalysisResponse`.
+1. `canonicalize_detections(..., allowed_labels: frozenset[str] | None = CANONICAL_LABELS, apply_aliases: bool = True)`.
+   - `allowed_labels=None` → keep every finite, above-threshold box with its
+     **native COCO label**, lower-cased. Box normalization, clamping, and the
+     `x1<x2 / y1<y2` guard are unchanged.
+   - **`LABEL_ALIASES` must NOT be applied to the full set.** Aliasing collapses
+     `backpack`/`handbag` into `bag` and `dining table`/`table` into `desk`,
+     which throws away exactly the word the user is going to say. The full set
+     keeps `backpack`, `handbag`, `dining table` verbatim; the risk set keeps its
+     current aliased behaviour untouched.
+2. `UltralyticsDetector.detect()` returns
+   `DetectionSet(risk: list[DetectionCandidate], all: list[DetectionCandidate])`
+   — both filterings of the **same** `raw` list, produced inside the existing
+   single-worker lock. One return value, no cached `raw`, no second GPU
+   inference.
+   - The `detect_all()` alternative from the first draft is rejected: it needs
+     `raw` cached across two calls behind one lock, which is a data race under
+     latest-frame-wins scheduling, for no benefit.
+3. Mirror the shape in the `Detector` Protocol and in `UnavailableDetector`.
+4. `load_detector()`'s warm-up call (`detector.detect(np.zeros(...))`) still
+   works unchanged — it discards the return value.
 
-3. **`app/perception/landmark_memory.py` — resolver fuzziness (`resolve`)**
-   - Normalize the query: lower, collapse spaces, drop a leading article and a
-     leading colour word (`red|orange|yellow|green|blue|purple|pink|brown|black|
-     white|grey|gray|silver|gold`).
-   - Match order: exact label → query token ⊇ label token (`"blue bottle"` →
-     `bottle`) → label token ⊇ query token → synonym table. Extend the synonym
-     table for COCO: `phone↔cell phone`, `mobile↔cell phone`, `laptop↔laptop`,
-     `tv↔tv↔television`, `plant↔potted plant`, `sofa↔couch`, `fridge↔refrigerator`,
-     `bin↔(no class)`, `glass↔wine glass|cup`, `mug↔cup`, `remote control↔remote`,
-     `bottle↔bottle` (covers "water bottle").
-   - On multiple matches, most-recently-seen wins (unchanged).
+### 11.4 Backend changes — the observation path
 
-4. **`app/config.py`** — optional `landmark_full_coco: bool = True` kill-switch;
-   `landmark_memory_max` may want raising (`24 → 40`) since the candidate stream
-   is wider. Keep the TTL.
+**This is where the first draft was wrong.** It said to feed memory and guidance
+"the full candidate list (mapped to `DetectionResult` the same way the risk list
+is)". That is not achievable. `DetectionResult` is the wire-contract model and
+requires `track_id`, `direction`, `proximity`, `proximity_score`,
+`approach_state`, `risk_score`, `risk_level`, and `display_color` — all produced
+by the tracker → `analyze_corridors` → `score_tracks` chain, which is
+deliberately whitelist-scoped. Building them for 80 classes would either run the
+whole risk pipeline over the full stream (a real behaviour and latency change to
+safety code) or fabricate risk fields for objects that were never risk-assessed
+— the thing D-069 refused to do for `confidence`.
 
-5. **Not-found phrasing (`app/api/vlm.py`)** — when both memory and VLM miss,
-   the 404 `text` should distinguish "not a thing I can recognise" from "I just
-   don't see it right now", e.g.:
-   `"I can't find a <target> nearby. I can only guide you to things I can recognise."`
-   The Android client speaks this verbatim.
+Both consumers only ever read `label`, `confidence`, and the box:
 
-### Still out of scope after this amendment
+- `LandmarkMemoryStore.observe()` reads `detection.label` and `detection.bbox.*`.
+- `TargetGuidanceSessionStore.step()` → `_latest_match()` reads `item.label` and
+  `item.confidence`, then `match.bbox.*`.
+
+So:
+
+1. **`app/perception/landmark_memory.py`** — `observe(...)` takes
+   `list[DetectionCandidate]` (flat `x1/y1/x2/y2`) instead of
+   `list[DetectionResult]`.
+2. **`app/guidance/target_guidance.py`** — `step(...)` and `_latest_match(...)`
+   take the same type. `target_guidance` already imports from
+   `app.perception.landmark_memory`, so this adds no new module-dependency
+   direction. (If the `perception`/`guidance` separation rule in `AGENTS.md` is
+   read strictly, declare a small `Observation` dataclass in
+   `landmark_memory.py` and map in `walk.py` instead — same result, one extra
+   allocation per detection per frame.)
+3. **`app/api/walk.py` `_process_accepted_frame`** — pass the detector's full
+   list straight to `landmark_memories.observe(...)` and
+   `target_sessions.step(...)`, **before and independent of** tracking, spatial,
+   and risk. Pass the risk list to `tracking_sessions.update(...)` as today.
+4. `detections` in `FrameAnalysisResponse`, the overlay, and everything the risk
+   engine consumes stay the **filtered** list built from `RiskAssessment`s.
+   **No wire-contract change.** `docs/API_CONTRACTS.md` needs no edit.
+
+This is strictly cheaper than the first draft as well as correct: the full
+stream skips the tracker, corridor, and scoring stages entirely.
+
+### 11.5 Backend changes — memory quality gate (new)
+
+Widening from 19 to 80 classes at `detector_confidence_threshold = 0.35` puts
+the long tail of weak boxes into memory. `Landmark` carries no confidence and
+`resolve()` returns the most-recently-seen match unconditionally, so a spurious
+0.36 "bottle" would produce confident turn-by-turn guidance toward nothing. The
+19-class whitelist was implicitly suppressing this; removing it removes the
+suppression. Add:
+
+1. `observe()` skips any candidate below `landmark_min_confidence`. Filtering at
+   observe time keeps `Landmark` unchanged — no confidence field, nothing new to
+   expose or persist.
+2. `resolve()` ignores entries with `sightings < landmark_min_sightings`. If
+   every match is below the gate, return `None` and fall through to the VLM —
+   the safe failure.
+3. **Heading-transition fix.** In `_remember`, when no bearing-gated candidate is
+   found but a same-label entry with `world_bearing_deg is None` exists, adopt
+   that entry (carrying its `sightings`) rather than creating a duplicate.
+   Without this, the first frame that carries `heading_degrees` after a
+   heading-less start resets the object to `sightings = 1`.
+
+4. **Re-acquisition floor (added during implementation).** `step()`'s
+   `_latest_match` had no confidence filter — harmless against the 19-class set,
+   but it now sees the detector's whole low-confidence tail, so a weak false
+   positive elsewhere in frame could pull guidance off the real target. It
+   applies the same `landmark_min_confidence` floor. Covered by
+   `test_target_tracking.py`.
+
+`person` remains excluded unless `landmark_allow_person`.
+
+**Closed in this pass.** The VLM path calls
+`landmark_memories.remember(label=target_name, ...)` directly, which bypassed the
+`person` filter that `observe()` applies, so `/vlm/locate?target_name=person`
+could seed a landmark and start guidance toward a person, contrary to §4.
+`/locate` now refuses a person target at the door with `404 NOT_FOUND` and
+"I can't guide you to a person.", before either resolver runs.
+
+`remember()` deliberately still bypasses the *sightings* gate: it seeds a new
+entry at `landmark_min_sightings` so a VLM-confirmed box is resolvable
+immediately. A confirmed detection is not detector flicker, and without this a
+second ask for the same target would pay for the VLM again, contrary to D-076.
+
+### 11.6 Backend changes — resolver fuzziness (`resolve` / `labels_match`)
+
+Current behaviour already covers more than the first draft assumed:
+`labels_match` is symmetric (`left ⊆ right or right ⊆ left`), so `"blue bottle"`
+→ `bottle` and `"phone"` → `cell phone` already match by token subset. What is
+actually missing:
+
+1. **Leading-noise stripping** — drop leading articles, possessives
+   (`my|our|your|his|her|their|some|that|this`), and colour words
+   (`red|orange|yellow|green|blue|purple|pink|brown|black|white|grey|gray|
+   silver|gold`) while more than one token remains. **Guard: never strip the
+   last token.** `orange` is both a colour and a COCO class; stripping it from a
+   bare `"orange"` query would leave an empty target that matches nothing — or,
+   under the subset rule, risks matching everything.
+
+   *Added during implementation:* the possessive class was not in the written
+   plan and is required. Synonyms are looked up on the whole normalized phrase,
+   so `"my phone"` missed `cell phone` on both the synonym table and the
+   token-subset rule (`{my, phone}` is not a subset of `{cell, phone}`). The
+   same defect broke `"my handbag"` → `bag`. Covered by
+   `test_landmark_memory.py`.
+2. **Synonym table for COCO** — add `bag ↔ backpack|handbag` and
+   `desk ↔ dining table`, so the *aliased* risk-set labels stay reachable by the
+   user's own word (§11.1), plus `mobile ↔ cell phone`, `glass ↔ wine glass`,
+   `mug ↔ cup`, `remote control ↔ remote`, `television ↔ tv`,
+   `fridge ↔ refrigerator`, `sofa ↔ couch`, `plant ↔ potted plant`. Words that
+   map to no COCO class (`bin`, `towel`) are simply absent — a miss, not a table
+   entry.
+3. Most-recently-seen wins among surviving matches (unchanged), now applied
+   after the §11.5 sightings gate.
+
+### 11.7 Backend changes — config
+
+`app/config.py`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `landmark_full_coco` | `true` | Kill-switch back to the 19-class memory |
+| `landmark_min_confidence` | `0.45` | Floor for entering landmark memory |
+| `landmark_min_sightings` | `2` | Frames before an entry is resolvable (~1 s @ 2 fps) |
+| `landmark_memory_max` | `24` → `40` | Wider candidate stream; the existing `le=128` bound already allows it |
+
+TTL stays at 45 s. Note the churn tradeoff: `_trim` evicts by pure recency, so a
+cluttered scene can push out the older landmark the user is about to ask for. 40
+is a judgement call in the D-039 tradition, not a measured value.
+
+### 11.8 Not-found phrasing (`app/api/vlm.py`)
+
+When both memory and VLM miss, the 404 message should distinguish "not a thing I
+can recognise" from "I just don't see it right now":
+
+> `"I can't find a <target> nearby. I can only guide you to things I can recognise."`
+
+**Correction to the first draft:** the Android client does *not* speak this
+verbatim. `TargetLocator.locateOnce` discards the backend message on `NOT_FOUND`
+and speaks the local `R.string.locate_not_found` instead. This change is
+therefore backend-only and inaudible until the coordinated §8 Android pass;
+adopting the backend wording there (`ApiResult.Failure.message` is already
+available at that call site) is deferred to that pass, not scoped here.
+
+### 11.9 Tests and documents to update
+
+Not optional — `AGENTS.md` requires tests in the same pass as the behaviour, and
+decisions recorded before implementation.
+
+- `backend/tests/conftest.py::ReadyTestDetector` — return a `DetectionSet`. Give
+  it an `all_detections` attribute defaulting to `detections` so the seven
+  integration tests that assign `detector.detections = [...]` keep working
+  unchanged.
+- `backend/tests/unit/test_detector.py` — add cases for `allowed_labels=None`
+  (native labels kept, aliases *not* applied, threshold still enforced) beside
+  the existing whitelist cases.
+- New unit coverage in `test_target_tracking.py`, or a new
+  `test_landmark_memory.py`: confidence floor rejects a 0.36 box; the sightings
+  gate blocks a one-frame object and admits a two-frame one; the
+  heading-transition case preserves `sightings`; a bare `"orange"` still
+  resolves to the fruit; `"blue bottle"` → `bottle`; `"backpack"` → the aliased
+  `bag` landmark; `person` still excluded.
+- Integration: a walk frame carrying a `bottle` for two frames, then
+  `/vlm/locate?target_name=blue bottle` → `resolved_from == "MEMORY"` with the
+  VLM engine never invoked; and `FrameAnalysisResponse.detections` in the same
+  test still containing only whitelist labels.
+- `docs/DECISIONS.md` — record D-078 (amends D-066; D-053 holds) with the
+  confidence and sightings gates as part of the decision, since they are what
+  keeps the wider stream honest.
+- `docs/API_CONTRACTS.md` — no change required; say so explicitly in the PR so
+  the reviewer does not go looking.
+
+### 11.10 Still out of scope after this amendment
 
 Targets that are **not** COCO classes — *towel, bucket, charger, wallet, keys,
 water (as a substance), door handle, light switch* — remain Moondream2-fallback
@@ -371,10 +548,30 @@ only, and an honest "I can't find a `<target>`" when the VLM misses. Closing tha
 tail needs either a wider detector or reliable open-vocab grounding, which is a
 separate decision.
 
-### Acceptance delta
+### 11.11 Acceptance delta
 
-- With a real bottle in the walk stream for ≥1 frame in the last 45 s, "find the
-  blue bottle" resolves `from MEMORY`, not `VLM`, and guidance proceeds.
+- With a real bottle in the walk stream for ≥2 processed frames in the last 45 s,
+  "find the blue bottle" resolves `from MEMORY`, not `VLM`, and guidance
+  proceeds.
+- A label that appears in exactly one frame does **not** become a guidance
+  target; the request falls through to the VLM.
+- "find my backpack" resolves against the aliased `bag` landmark.
+- A bare `"orange"` query still resolves to the COCO `orange` class.
 - `person` still excluded unless `landmark_allow_person`.
-- Walk-loop p95 `total_ms` unchanged (no second inference).
-- `FrameAnalysisResponse.detections` still carries only the 19-class set.
+- Walk-loop p95 `total_ms` unchanged — no second inference, and the full stream
+  skips tracking, spatial, and risk.
+- `FrameAnalysisResponse.detections` still carries only the 19-class set, and
+  overlay/risk behaviour is unchanged from `main` for the same input.
+
+### 11.12 What the audit changed in the first draft
+
+| First draft said | Reality on `main` | Now says |
+|---|---|---|
+| backpack, handbag, dining table are thrown away | `LABEL_ALIASES` keeps them as `bag`/`desk`; they fail because `labels_match` cannot connect the user's word to the alias | §11.1 correction + synonym entries in §11.6 |
+| Map the full candidate list to `DetectionResult` | `DetectionResult` needs tracker/spatial/risk fields that only exist for whitelist labels | §11.4 — memory and guidance take `DetectionCandidate`; only label, confidence, box are read |
+| `allowed_labels=None` keeps `LABEL_ALIASES` normalization | Aliasing is what destroys the user's word | §11.3 — aliases off for the full set |
+| The Android client speaks the 404 text verbatim | `TargetLocator` substitutes a local string and drops the backend message | §11.8 — backend-only; client change deferred to §8 |
+| (silent) | Widening to 80 classes at conf 0.35 removes the whitelist's implicit junk suppression | §11.5 — confidence floor + sightings gate |
+| (silent) | Heading-transition creates a duplicate entry and resets `sightings` | §11.5.3 |
+| (silent) | The VLM `remember()` path bypasses the `person` filter | §11.5, flagged for a scope call |
+| (silent) | No test, DECISIONS, or contract-note plan | §11.9 |
